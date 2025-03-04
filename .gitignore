@@ -13,3 +13,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+# キャッシュやログ
+*.log
+*.keystore
+crashlytics-build.properties
+fabric.properties
