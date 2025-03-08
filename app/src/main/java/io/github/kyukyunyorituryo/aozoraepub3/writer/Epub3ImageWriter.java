@@ -127,7 +127,8 @@ public class Epub3ImageWriter extends Epub3Writer
 					this.endSection();
 				}
 			}
-			if (this.jProgressBar != null) this.jProgressBar.setValue(this.jProgressBar.getValue()+1);
+			//プログレスバーなし
+			//if (this.jProgressBar != null) this.jProgressBar.setValue(this.jProgressBar.getValue()+1);
 			if (this.canceled) return;
 		}
 	}
