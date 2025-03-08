@@ -1,9 +1,13 @@
 package io.github.kyukyunyorituryo.aozoraepub3.converter;
 
+import android.content.Context;
+import android.content.res.AssetManager;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -22,10 +26,12 @@ public class LatinConverter
 	 * int[]{横書き時のグリフのCID, 縦書き時(右90度)のグリフのCID} */
 	HashMap<Character, String[]> latinCidMap = new HashMap<Character, String[]>();
 	
-	public LatinConverter(File file) throws IOException
+	public LatinConverter(Context context) throws IOException
 	{
-		//String srcFileName = "chuki_latin.txt";
-        try (BufferedReader src = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+		String srcFileName = "chuki_latin.txt";
+		AssetManager mngr = context.getAssets();
+		InputStream is = mngr.open(srcFileName);
+        try (BufferedReader src = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
             String line;
             int lineNum = 0;
             while ((line = src.readLine()) != null) {
@@ -37,7 +43,7 @@ public class LatinConverter
                         if (!values[0].isEmpty()) latinMap.put(values[0], ch);
                         if (values.length > 3) latinCidMap.put(ch, new String[]{values[2], values[3]});
                     } catch (Exception e) {
-                        LogAppender.error(lineNum, file.getName(), line);
+                        LogAppender.error(lineNum, srcFileName, line);
                     }
                 }
             }

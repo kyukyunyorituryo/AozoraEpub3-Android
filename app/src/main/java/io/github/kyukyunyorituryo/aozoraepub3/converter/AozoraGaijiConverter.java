@@ -1,9 +1,13 @@
 package io.github.kyukyunyorituryo.aozoraepub3.converter;
 
+import android.content.Context;
+import android.content.res.AssetManager;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -26,21 +30,22 @@ public class AozoraGaijiConverter
 	
 	/** 青空文庫注記外字を代替文字に変換 */
 	HashMap<String, String> chukiAltMap = new HashMap<String, String>();
-	
-	public AozoraGaijiConverter(String jarPath) throws IOException
+
+	public AozoraGaijiConverter(Context context) throws IOException
 	{
 		//初期化
 		//ファイルチェック取得 IVS優先
-		this.loadChukiFile(new File(jarPath+"chuki_ivs.txt"), chukiUtfMap);
-		this.loadChukiFile(new File(jarPath+"chuki_utf.txt"), chukiUtfMap);
-		this.loadChukiFile(new File(jarPath+"chuki_alt.txt"), chukiAltMap);
+
+		this.loadChukiFile(context.getAssets().open("chuki_ivs.txt"), chukiUtfMap);
+		this.loadChukiFile(context.getAssets().open("chuki_utf.txt"), chukiUtfMap);
+		this.loadChukiFile(context.getAssets().open("chuki_alt.txt"), chukiAltMap);
 	}
 	
 	/** 注記変換ファイル読み込み 
 	 * @throws IOException */
-	private void loadChukiFile(File srcFile, HashMap<String, String> chukiMap) throws IOException
+	private void loadChukiFile(InputStream srcFile, HashMap<String, String> chukiMap) throws IOException
 	{
-        try (BufferedReader src = new BufferedReader(new InputStreamReader(new FileInputStream(srcFile), StandardCharsets.UTF_8))) {
+        try (BufferedReader src = new BufferedReader(new InputStreamReader((srcFile), StandardCharsets.UTF_8))) {
             String line;
             int lineNum = 0;
             while ((line = src.readLine()) != null) {
@@ -68,7 +73,7 @@ public class AozoraGaijiConverter
                         else chukiMap.put(chuki, utfChar);
 
                     } catch (Exception e) {
-                        LogAppender.error(lineNum, srcFile.getName(), line);
+                        LogAppender.error(lineNum, srcFile.toString(), line);
                     }
                 }
                 lineNum++;
