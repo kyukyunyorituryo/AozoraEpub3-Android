@@ -1,4 +1,4 @@
-package com.github.hmdev.writer;
+package io.github.kyukyunyorituryo.aozoraepub3.writer;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -17,10 +17,10 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.velocity.app.Velocity;
 
-import com.github.hmdev.converter.AozoraEpub3Converter;
-import com.github.hmdev.info.ImageInfo;
-import com.github.hmdev.info.SectionInfo;
-import com.github.hmdev.util.LogAppender;
+import io.github.kyukyunyorituryo.aozoraepub3.converter.AozoraEpub3Converter;
+import io.github.kyukyunyorituryo.aozoraepub3.info.ImageInfo;
+import io.github.kyukyunyorituryo.aozoraepub3.info.SectionInfo;
+import io.github.kyukyunyorituryo.aozoraepub3.util.LogAppender;
 import com.github.junrar.Archive;
 import com.github.junrar.exception.RarException;
 import com.github.junrar.rarfile.FileHeader;

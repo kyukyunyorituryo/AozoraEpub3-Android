@@ -1,4 +1,4 @@
-package com.github.hmdev.image;
+package io.github.kyukyunyorituryo.aozoraepub3.image;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -27,8 +27,8 @@ import javax.imageio.ImageWriter;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 
-import com.github.hmdev.info.ImageInfo;
-import com.github.hmdev.util.LogAppender;
+import io.github.kyukyunyorituryo.aozoraepub3.info.ImageInfo;
+import io.github.kyukyunyorituryo.aozoraepub3.util.LogAppender;
 
 public class ImageUtils
 {

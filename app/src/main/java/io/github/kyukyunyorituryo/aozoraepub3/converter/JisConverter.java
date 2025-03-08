@@ -1,4 +1,4 @@
-package com.github.hmdev.converter;
+package io.github.kyukyunyorituryo.aozoraepub3.converter;
 
 /** 第3水準 第4水準JISをUTF-8に変換するためのクラス
  * nioは1面の対応のみなので使わない

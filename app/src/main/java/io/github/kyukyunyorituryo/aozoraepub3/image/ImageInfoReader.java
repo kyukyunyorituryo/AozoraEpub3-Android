@@ -1,4 +1,4 @@
-package com.github.hmdev.image;
+package io.github.kyukyunyorituryo.aozoraepub3.image;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
@@ -16,9 +16,9 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
-import com.github.hmdev.info.ImageInfo;
-import com.github.hmdev.util.FileNameComparator;
-import com.github.hmdev.util.LogAppender;
+import io.github.kyukyunyorituryo.aozoraepub3.info.ImageInfo;
+import io.github.kyukyunyorituryo.aozoraepub3.util.FileNameComparator;
+import io.github.kyukyunyorituryo.aozoraepub3.util.LogAppender;
 import com.github.junrar.Archive;
 import com.github.junrar.exception.RarException;
 import com.github.junrar.rarfile.FileHeader;

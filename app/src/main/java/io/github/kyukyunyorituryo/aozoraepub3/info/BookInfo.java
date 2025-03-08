@@ -1,4 +1,4 @@
-package com.github.hmdev.info;
+package io.github.kyukyunyorituryo.aozoraepub3.info;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Arrays;
@@ -9,8 +9,8 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.github.hmdev.image.ImageUtils;
-import com.github.hmdev.util.CharUtils;
+import io.github.kyukyunyorituryo.aozoraepub3.image.ImageUtils;
+import io.github.kyukyunyorituryo.aozoraepub3.util.CharUtils;
 
 /** タイトル著作者等のメタ情報を格納 */
 public class BookInfo

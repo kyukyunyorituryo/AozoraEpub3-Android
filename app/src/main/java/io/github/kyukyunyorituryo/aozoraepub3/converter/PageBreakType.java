@@ -1,7 +1,7 @@
 /**
  * 改ページ情報
  */
-package com.github.hmdev.converter;
+package io.github.kyukyunyorituryo.aozoraepub3.converter;
 
 public class PageBreakType
 {

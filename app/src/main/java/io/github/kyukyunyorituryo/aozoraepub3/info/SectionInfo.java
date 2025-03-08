@@ -1,4 +1,4 @@
-package com.github.hmdev.info;
+package io.github.kyukyunyorituryo.aozoraepub3.info;
 
 /** セクションの情報 xhtmlに対応 */
 public class SectionInfo

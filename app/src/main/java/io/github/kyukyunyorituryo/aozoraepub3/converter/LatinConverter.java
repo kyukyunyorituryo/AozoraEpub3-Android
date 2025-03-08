@@ -1,4 +1,4 @@
-package com.github.hmdev.converter;
+package io.github.kyukyunyorituryo.aozoraepub3.converter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
-import com.github.hmdev.util.LogAppender;
+import io.github.kyukyunyorituryo.aozoraepub3.util.LogAppender;
 
 
 /**

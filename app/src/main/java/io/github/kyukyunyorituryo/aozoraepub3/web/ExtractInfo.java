@@ -1,4 +1,4 @@
-package com.github.hmdev.web;
+package io.github.kyukyunyorituryo.aozoraepub3.web;
 
 import java.util.regex.Pattern;
 

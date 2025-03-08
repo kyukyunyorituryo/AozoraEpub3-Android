@@ -1,4 +1,4 @@
-package com.github.hmdev.info;
+package io.github.kyukyunyorituryo.aozoraepub3.info;
 
 /** 前回の変換時の履歴
  * 表示編集情報

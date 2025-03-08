@@ -1,4 +1,4 @@
-package com.github.hmdev.info;
+package io.github.kyukyunyorituryo.aozoraepub3.info;
 
 public class CoverEditInfo
 {

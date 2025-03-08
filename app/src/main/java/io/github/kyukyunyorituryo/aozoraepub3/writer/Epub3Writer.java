@@ -1,4 +1,4 @@
-package com.github.hmdev.writer;
+package io.github.kyukyunyorituryo.aozoraepub3.writer;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.ByteLookupTable;
@@ -34,18 +34,18 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 
-import com.github.hmdev.converter.AozoraEpub3Converter;
-import com.github.hmdev.converter.PageBreakType;
-import com.github.hmdev.image.ImageInfoReader;
-import com.github.hmdev.image.ImageUtils;
-import com.github.hmdev.info.BookInfo;
-import com.github.hmdev.info.ChapterInfo;
-import com.github.hmdev.info.ChapterLineInfo;
-import com.github.hmdev.info.GaijiInfo;
-import com.github.hmdev.info.ImageInfo;
-import com.github.hmdev.info.SectionInfo;
-import com.github.hmdev.util.CharUtils;
-import com.github.hmdev.util.LogAppender;
+import io.github.kyukyunyorituryo.aozoraepub3.converter.AozoraEpub3Converter;
+import io.github.kyukyunyorituryo.aozoraepub3.converter.PageBreakType;
+import io.github.kyukyunyorituryo.aozoraepub3.image.ImageInfoReader;
+import io.github.kyukyunyorituryo.aozoraepub3.image.ImageUtils;
+import io.github.kyukyunyorituryo.aozoraepub3.info.BookInfo;
+import io.github.kyukyunyorituryo.aozoraepub3.info.ChapterInfo;
+import io.github.kyukyunyorituryo.aozoraepub3.info.ChapterLineInfo;
+import io.github.kyukyunyorituryo.aozoraepub3.info.GaijiInfo;
+import io.github.kyukyunyorituryo.aozoraepub3.info.ImageInfo;
+import io.github.kyukyunyorituryo.aozoraepub3.info.SectionInfo;
+import io.github.kyukyunyorituryo.aozoraepub3.util.CharUtils;
+import io.github.kyukyunyorituryo.aozoraepub3.util.LogAppender;
 import com.github.junrar.Archive;
 import com.github.junrar.rarfile.FileHeader;
 

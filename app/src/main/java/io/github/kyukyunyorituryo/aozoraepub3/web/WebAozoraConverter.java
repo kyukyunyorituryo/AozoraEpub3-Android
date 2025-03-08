@@ -1,4 +1,4 @@
-package com.github.hmdev.web;
+package io.github.kyukyunyorituryo.aozoraepub3.web;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -32,9 +32,9 @@ import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
-import com.github.hmdev.util.CharUtils;
-import com.github.hmdev.util.LogAppender;
-import com.github.hmdev.web.ExtractInfo.ExtractId;
+import io.github.kyukyunyorituryo.aozoraepub3.util.CharUtils;
+import io.github.kyukyunyorituryo.aozoraepub3.util.LogAppender;
+import io.github.kyukyunyorituryo.aozoraepub3.web.ExtractInfo.ExtractId;
 
 /** HTMLを青空txtに変換 */
 public class WebAozoraConverter

@@ -1,7 +1,7 @@
-package com.github.hmdev.info;
+package io.github.kyukyunyorituryo.aozoraepub3.info;
 
 import java.util.List;
-import com.github.hmdev.util.CharUtils;
+import io.github.kyukyunyorituryo.aozoraepub3.util.CharUtils;
 
 /** 目次用の章の情報を格納（仮） */
 public class ChapterInfo

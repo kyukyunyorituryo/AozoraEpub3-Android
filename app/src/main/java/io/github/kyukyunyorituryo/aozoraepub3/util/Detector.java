@@ -1,4 +1,4 @@
-package com.github.hmdev.util;
+package io.github.kyukyunyorituryo.aozoraepub3.util;
 
 import java.io.IOException;
 import java.io.InputStream;
