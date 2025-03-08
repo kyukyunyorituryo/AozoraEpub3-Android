@@ -71,16 +71,18 @@ public class LatinConverter
 		}
 		return new String(out, 0, outIdx);
 	}
-	
+
 	/** ラテン文字をグリフタグに変換した文字列に変換 */
 	public String toLatinGlyphString(char ch)
 	{
 		String[] cid = latinCidMap.get(ch);
 		if (cid == null) return null;
-        return "<glyph system=\"Adobe-Japan1-6\" code=\"" +
-                cid[0] +
-                "\" v_code=\"" +
-                cid[1] +
-                "\"/>";
+		StringBuilder buf = new StringBuilder();
+		buf.append("<glyph system=\"Adobe-Japan1-6\" code=\"");
+		buf.append(cid[0]);
+		buf.append("\" v_code=\"");
+		buf.append(cid[1]);
+		buf.append("\"/>");
+		return buf.toString();
 	}
 }
