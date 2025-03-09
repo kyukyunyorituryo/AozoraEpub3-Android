@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -19,6 +20,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
+import io.github.kyukyunyorituryo.aozoraepub3.util.LogAppender;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -32,6 +35,17 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        // ログを表示するTextViewを取得
+        TextView logTextView = findViewById(R.id.textViewLog);
+
+        // LogAppenderにTextViewをセット
+        LogAppender.setTextView(logTextView);
+
+        // ログの出力テスト
+        LogAppender.println("アプリ起動");
+        LogAppender.info(42, "情報ログ", "詳細情報");
+        LogAppender.warn(100, "警告ログ");
+        LogAppender.error(200, "エラーログ", "エラー詳細");
         Button buttonOpen = findViewById(R.id.button_open);
         Button buttonProcess = findViewById(R.id.button_process);
         Button buttonSave = findViewById(R.id.button_save);
