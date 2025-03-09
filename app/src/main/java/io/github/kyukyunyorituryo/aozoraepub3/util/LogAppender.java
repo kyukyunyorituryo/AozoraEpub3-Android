@@ -1,89 +1,84 @@
 package io.github.kyukyunyorituryo.aozoraepub3.util;
-import javax.swing.JTextArea;
+
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+import android.widget.TextView;
 
 /** ログ出力Wrapperクラス */
-public class LogAppender
-{
-	static JTextArea jTextArea = null;
-	
-	static public void setTextArea(JTextArea _jTextArea)
-	{
-		jTextArea = _jTextArea;
+public class LogAppender {
+	private static TextView textView = null;
+	private static final Handler handler = new Handler(Looper.getMainLooper());
+
+	public static void setTextView(TextView _textView) {
+		textView = _textView;
 	}
-	
-	static public void println(String log)
-	{
-		LogAppender.append(log);
-		LogAppender.append("\n");
+
+	public static void println(String log) {
+		append(log);
+		append("\n");
 	}
-	static public void println()
-	{
-		LogAppender.append("\n");
+
+	public static void println() {
+		append("\n");
 	}
-	static public void append(String log)
-	{
-		if (jTextArea != null) {
-			jTextArea.append(log);
-			jTextArea.setCaretPosition(jTextArea.getDocument().getLength());
+
+	public static void append(String log) {
+		Log.d("LogAppender", log);  // Androidのログ出力
+		if (textView != null) {
+			handler.post(() -> {
+				textView.append(log);
+				textView.append("\n");
+			});
 		}
-		System.out.print(log);
 	}
-	
-	static public void printStaclTrace(Exception e)
-	{
+
+	public static void printStackTrace(Exception e) {
 		for (StackTraceElement ste : e.getStackTrace()) {
-			LogAppender.append(ste.toString());
-			LogAppender.append("\n");
+			append(ste.toString());
+			append("\n");
 		}
 	}
-	
-	static public void msg(int lineNum, String msg, String desc)
-	{
-		LogAppender.append(msg);
-		LogAppender.append(" ("+(lineNum+1)+")");
+
+	public static void msg(int lineNum, String msg, String desc) {
+		append(msg + " (" + (lineNum + 1) + ")");
 		if (desc != null) {
-			LogAppender.append(" : ");
-			LogAppender.append(desc);
+			append(" : " + desc);
 		}
-		LogAppender.append("\n");
+		append("\n");
 	}
-	
-	static public void error(String msg)
-	{
-		LogAppender.append("[ERROR] ");
-		LogAppender.append(msg);
-		LogAppender.append("\n");
+
+	public static void error(String msg) {
+		append("[ERROR] " + msg + "\n");
 	}
-	static public void error(int lineNum, String msg, String desc)
-	{
-		LogAppender.append("[ERROR] ");
-		LogAppender.msg(lineNum, msg, desc);
+
+	public static void error(int lineNum, String msg, String desc) {
+		append("[ERROR] ");
+		msg(lineNum, msg, desc);
 	}
-	static public void error(int lineNum, String msg)
-	{
-		LogAppender.append("[ERROR] ");
-		LogAppender.msg(lineNum, msg, null);
+
+	public static void error(int lineNum, String msg) {
+		append("[ERROR] ");
+		msg(lineNum, msg, null);
 	}
-	
-	static public void warn(int lineNum, String msg, String desc)
-	{
-		LogAppender.append("[WARN] ");
-		LogAppender.msg(lineNum, msg, desc);
+
+	public static void warn(int lineNum, String msg, String desc) {
+		append("[WARN] ");
+		msg(lineNum, msg, desc);
 	}
-	static public void warn(int lineNum, String msg)
-	{
-		LogAppender.append("[WARN] ");
-		LogAppender.msg(lineNum, msg, null);
+
+	public static void warn(int lineNum, String msg) {
+		append("[WARN] ");
+		msg(lineNum, msg, null);
 	}
-	
-	static public void info(int lineNum, String msg, String desc)
-	{
-		LogAppender.append("[INFO] ");
-		LogAppender.msg(lineNum, msg, desc);
+
+	public static void info(int lineNum, String msg, String desc) {
+		append("[INFO] ");
+		msg(lineNum, msg, desc);
 	}
-	static public void info(int lineNum, String msg)
-	{
-		LogAppender.append("[INFO] ");
-		LogAppender.msg(lineNum, msg, null);
+
+	public static void info(int lineNum, String msg) {
+		append("[INFO] ");
+		msg(lineNum, msg, null);
 	}
 }
