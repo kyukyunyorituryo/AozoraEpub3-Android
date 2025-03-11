@@ -1,16 +1,13 @@
 package io.github.kyukyunyorituryo.aozoraepub3.info;
 
-import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
-
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
 
 /** 画像情報
  * Velocity内でも利用するための情報も格納する */
@@ -48,37 +45,39 @@ public class ImageInfo
 		this.width = width;
 		this.height = height;
 	}
-	
-	/** ファイルから画像情報を生成 */
-	static public ImageInfo getImageInfo(File imageFile) throws IOException
-	{
-		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(imageFile));
-		ImageInfo imageInfo = ImageInfo.getImageInfo(bis);
-		bis.close();
-		return imageInfo;
+
+	/** ファイルから画像情報を取得 */
+	public static ImageInfo getImageInfo(File imageFile) throws IOException {
+		return getImageInfo(new FileInputStream(imageFile), getFileExtension(String.valueOf(imageFile)));
 	}
-	
-	/** 画像ストリームから画像情報を生成
-	 * @throws IOException */
-	static public ImageInfo getImageInfo(InputStream is) throws IOException
-	{
-		ImageInfo imageInfo = null;
-		ImageInputStream iis = ImageIO.createImageInputStream(is);
-		Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
-		if (readers.hasNext()) {
-			ImageReader reader = readers.next();
-			if (readers.hasNext() && reader.getClass().getName().endsWith("CLibPNGImageReader")) readers.next();
-			reader.setInput(iis);
-			String ext = reader.getFormatName();
-			imageInfo = new ImageInfo(ext, reader.getWidth(0), reader.getHeight(0));
-			reader.dispose();
+	/** Uri から画像情報を取得 (Android用)
+	 * @param context Androidの `Context`
+	 * @param imageUri 画像の `Uri`
+	 */
+	public static ImageInfo getImageInfo(Context context, Uri imageUri) throws IOException {
+		ContentResolver resolver = context.getContentResolver();
+		InputStream is = resolver.openInputStream(imageUri);
+		if (is == null) {
+			throw new IOException("Failed to open InputStream from Uri");
 		}
-		return imageInfo;
+		return getImageInfo(is, getFileExtension(imageUri.toString()));
 	}
-	
-	static public ImageInfo getImageInfo(String ext, BufferedImage image) {
-		return new ImageInfo(ext, image.getWidth(), image.getHeight());
+
+	/** InputStream から画像情報を取得 */
+	private static ImageInfo getImageInfo(InputStream is, String ext) throws IOException {
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = true; // 画像のデコードはせず、サイズのみ取得
+		BitmapFactory.decodeStream(is, null, options);
+		is.close();
+		return new ImageInfo(ext, options.outWidth, options.outHeight);
 	}
+	/** ファイル名やパスから拡張子を取得 */
+	private static String getFileExtension(String filename) {
+		int lastDot = filename.lastIndexOf('.');
+		if (lastDot == -1) return "";
+		return filename.substring(lastDot + 1).toLowerCase();
+	}
+
 	
 	public String getId()
 	{
