@@ -1,5 +1,6 @@
 package io.github.kyukyunyorituryo.aozoraepub3.info;
-import java.awt.image.BufferedImage;
+import android.graphics.Bitmap;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.Date;
@@ -144,7 +145,7 @@ public class BookInfo
 	/** SVG表紙画像ありならtrue */
 	public boolean svgCoverImage = false;
 	/** 表紙イメージがトリミングされた場合に設定される coverFileNameより優先される */
-	public BufferedImage coverImage = null;
+	public Bitmap coverImage = null;
 	/** 表紙に使う挿絵の本文内Index -1なら本文内の挿絵は使わない */
 	public int coverImageIndex = -1;
 	/** imageにしたとき用の元ファイルの拡張子 */
