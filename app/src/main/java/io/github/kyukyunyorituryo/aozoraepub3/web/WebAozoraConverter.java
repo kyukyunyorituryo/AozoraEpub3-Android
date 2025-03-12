@@ -21,9 +21,12 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.io.StringWriter;
+JJ
+import org.apache.commons.io.IOUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -204,8 +207,7 @@ public class WebAozoraConverter
      * @return 変換スキップやキャンセルならnullを返す
      */
 	public File convertToAozoraText(String urlString, File cachePath, int interval, float modifiedExpire,
-                                    boolean convertUpdated, boolean convertModifiedOnly, boolean convertModifiedTail, int beforeChapter, String UserAgent, boolean webLageImage) throws IOException
-	{
+                                    boolean convertUpdated, boolean convertModifiedOnly, boolean convertModifiedTail, int beforeChapter, String UserAgent, boolean webLageImage) throws IOException, JSONException {
 		this.canceled = false;
 		//日付一覧が取得できない場合は常に更新
 		this.updated = true;
@@ -447,7 +449,7 @@ public class WebAozoraConverter
             //表紙画像
             Elements images = getExtractElements(doc, this.queryMap.get(ExtractId.COVER_IMG));
             if (images != null) {
-                printImage(null, images.getFirst(), coverImageFile);
+                printImage(null, images.get(0), coverImageFile);
             }
 
             //タイトル
@@ -746,7 +748,7 @@ public class WebAozoraConverter
                     //出力話数生成
                     for (int idx = 0; idx < chapterHrefs.size(); idx++) {
                         if (modifiedChapterIdx.contains(idx)) {
-                            if (buf.isEmpty()) buf.append((idx + 1));
+                            if (buf.length() == 0) buf.append((idx + 1));
                             else {
                                 if (preIdx == idx - 1) {
                                     idxConnected = true;
@@ -896,7 +898,7 @@ public class WebAozoraConverter
 
 			//画像 前に表示
 			Elements images = getExtractElements(doc, this.queryMap.get(ExtractId.CONTENT_IMG));
-			if (images != null) printImage(bw, images.getFirst());
+			if (images != null) printImage(bw, images.get(0));
 
 			//前書き
 			Elements preambleDivs = getExtractElements(doc, this.queryMap.get(ExtractId.CONTENT_PREAMBLE));
@@ -1200,7 +1202,7 @@ public class WebAozoraConverter
 						}
 					}
 				}
-				if (!buf.isEmpty()) text = buf.deleteCharAt(0).toString();
+				if (buf.length() > 0) text = buf.deleteCharAt(0).toString();
 			}
 			//置換指定ならreplaceして返す
 			if (text != null && !text.isEmpty()) {
@@ -1342,8 +1344,8 @@ public class WebAozoraConverter
 		conn.setReadTimeout(10000);//10秒
 		BufferedInputStream bis = new BufferedInputStream(conn.getInputStream(), 8192);
 		BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(cacheFile));
-		//IOUtils.copy(bis, bos);
-		bis.transferTo(bos);
+		IOUtils.copy(bis, bos);
+		//bis.transferTo(bos);
 		bos.close();
 		bis.close();
 	}
