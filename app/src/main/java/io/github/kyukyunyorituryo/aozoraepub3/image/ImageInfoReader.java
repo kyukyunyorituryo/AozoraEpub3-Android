@@ -3,7 +3,6 @@ package io.github.kyukyunyorituryo.aozoraepub3.image;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -305,7 +304,7 @@ public class ImageInfoReader
 	}
 
 	/** 指定した順番の画像情報を取得 */
-	public Bitmap getImage(int idx) throws IOException {
+	public Bitmap getImage(int idx) throws IOException, RarException {
 		return this.getImage(this.imageFileNames.get(idx));
 	}
 	
@@ -316,7 +315,10 @@ public class ImageInfoReader
 	 * @param srcImageFileName ファイル名 Zipならエントリ名
 	 * ※先頭からシークされるので遅い? 
 	 * @throws RarException */
-	public Bitmap getImage(String srcImageFileName) throws IOException {
+	/** ファイル名から画像を取得 */
+
+	/** ファイル名から画像を取得 */
+	public Bitmap getImage(String srcImageFileName) throws IOException, RarException {
 		if (this.isFile) {
 			File file = new File(this.srcParentPath + srcImageFileName);
 			if (!file.exists()) {
@@ -325,52 +327,45 @@ public class ImageInfoReader
 				file = new File(this.srcParentPath + srcImageFileName);
 				if (!file.exists()) return null;
 			}
-			try (FileInputStream fis = new FileInputStream(file)) {
-				return BitmapFactory.decodeStream(fis);
+			try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file), 8192)) {
+				return ImageUtils.readImage(srcImageFileName.substring(srcImageFileName.lastIndexOf('.') + 1).toLowerCase(), bis);
 			}
 		} else {
 			if (this.srcFile.getName().endsWith(".rar")) {
-				return getImageFromRar(srcImageFileName);
-			} else {
-				return getImageFromZip(srcImageFileName);
-			}
-		}
-	}
-
-	/** RARファイル内の画像を取得 */
-	private Bitmap getImageFromRar(String srcImageFileName) throws IOException {
-		try (Archive archive = new Archive(new FileInputStream(srcFile))) {
-			FileHeader fileHeader = archive.nextFileHeader();
-			while (fileHeader != null) {
-				if (!fileHeader.isDirectory()) {
-					String entryName = fileHeader.getFileName().replace('\\', '/');
-					if (srcImageFileName.equals(entryName)) {
-						try (InputStream is = archive.getInputStream(fileHeader)) {
-							return BitmapFactory.decodeStream(is);
+				InputStream is = null;
+				Archive archive = new Archive(new FileInputStream(srcFile));
+				try {
+					FileHeader fileHeader = archive.nextFileHeader();
+					while (fileHeader != null) {
+						if (!fileHeader.isDirectory()) {
+							String entryName = fileHeader.getFileName().replace('\\', '/');
+							if (srcImageFileName.equals(entryName)) {
+								is = archive.getInputStream(fileHeader);
+								return BitmapFactory.decodeStream(is);
+							}
 						}
+						fileHeader = archive.nextFileHeader();
 					}
+				} finally {
+					if (is != null) is.close();
+					archive.close();
 				}
-				fileHeader = archive.nextFileHeader();
-			}
-		} catch (RarException e) {
-            throw new RuntimeException(e);
-        }
-        return null;
-	}
-
-	/** ZIPファイル内の画像を取得 */
-	private Bitmap getImageFromZip(String srcImageFileName) throws IOException {
-		try (ZipFile zipFile = new ZipFile(this.srcFile)) {
-			ZipArchiveEntry entry = zipFile.getEntry(srcImageFileName);
-			if (entry == null) {
-				srcImageFileName = this.correctExt(srcImageFileName);
-				entry = zipFile.getEntry(srcImageFileName);
-				if (entry == null) return null;
-			}
-			try (InputStream is = zipFile.getInputStream(entry)) {
-				return BitmapFactory.decodeStream(is);
+			} else {
+				try (ZipFile zf = ZipFile.builder().setFile(this.srcFile).setUseUnicodeExtraFields(true).get()) {
+					ZipArchiveEntry entry = zf.getEntry(srcImageFileName);
+					if (entry == null) {
+						srcImageFileName = this.correctExt(srcImageFileName);
+						entry = zf.getEntry(srcImageFileName);
+						if (entry == null) return null;
+					}
+					try (InputStream is = zf.getInputStream(entry)) {
+						return ImageUtils.readImage(srcImageFileName.substring(srcImageFileName.lastIndexOf('.')+1).toLowerCase(), is);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
+		return null;
 	}
-
 }
