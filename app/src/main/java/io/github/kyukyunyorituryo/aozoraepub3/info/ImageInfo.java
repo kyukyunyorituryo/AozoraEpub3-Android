@@ -2,8 +2,11 @@ package io.github.kyukyunyorituryo.aozoraepub3.info;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -45,10 +48,43 @@ public class ImageInfo
 		this.width = width;
 		this.height = height;
 	}
+	/** ファイルから画像情報を生成 */
+	static public ImageInfo getImageInfo(File imageFile) throws IOException
+	{
+		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(imageFile));
+		ImageInfo imageInfo = ImageInfo.getImageInfo(bis);
+		bis.close();
+		return imageInfo;
+	}
+	/** 画像ストリームから画像情報を生成
+	 * @throws IOException */
+	public static ImageInfo getImageInfo(InputStream is) {
+		if (is == null) return null;
 
-	/** ファイルから画像情報を取得 */
-	public static ImageInfo getImageInfo(File imageFile) throws IOException {
-		return getImageInfo(new FileInputStream(imageFile), getFileExtension(String.valueOf(imageFile)));
+		try {
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true; // 実際に画像を読み込まず情報だけ取得
+
+			BitmapFactory.decodeStream(is, null, options);
+
+			if (options.outWidth > 0 && options.outHeight > 0) {
+				String ext = getImageExtension(options.outMimeType);
+				return new ImageInfo(ext, options.outWidth, options.outHeight);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	/**
+	 * MIMEタイプから拡張子を取得
+	 */
+	private static String getImageExtension(String mimeType) {
+		if (mimeType == null) return "unknown";
+		if (mimeType.equals("image/jpeg")) return "jpg";
+		if (mimeType.equals("image/png")) return "png";
+		if (mimeType.equals("image/webp")) return "webp";
+		return "unknown";
 	}
 	/** Uri から画像情報を取得 (Android用)
 	 * @param context Androidの `Context`
@@ -77,7 +113,17 @@ public class ImageInfo
 		if (lastDot == -1) return "";
 		return filename.substring(lastDot + 1).toLowerCase();
 	}
-
+	/**
+	 * Bitmap から画像情報を取得
+	 *
+	 * @param ext   画像の拡張子
+	 * @param image 画像 (Bitmap)
+	 * @return 画像情報 (拡張子, 幅, 高さ)
+	 */
+	public static ImageInfo getImageInfo(String ext, Bitmap image) {
+		if (image == null) return null;
+		return new ImageInfo(ext, image.getWidth(), image.getHeight());
+	}
 	
 	public String getId()
 	{
