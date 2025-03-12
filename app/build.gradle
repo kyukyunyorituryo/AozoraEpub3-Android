@@ -43,6 +43,10 @@ dependencies {
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.16'
 // https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
     implementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.16'
+// https://mvnrepository.com/artifact/org.jsoup/jsoup
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.18.1'
+// https://mvnrepository.com/artifact/org.json/json
+    implementation group: 'org.json', name: 'json', version: '20240303'
 
     implementation libs.appcompat
     implementation libs.material
