@@ -1,15 +1,16 @@
 package io.github.kyukyunyorituryo.aozoraepub3.image;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.IndexColorModel;
-import java.awt.image.LookupOp;
-import java.awt.image.WritableRaster;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Matrix;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.Bitmap.Config;
+import android.graphics.Paint;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -17,15 +18,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
 import java.util.Iterator;
+import java.util.zip.ZipOutputStream;
 
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.io.IOUtils;
 
 import io.github.kyukyunyorituryo.aozoraepub3.info.ImageInfo;
 import io.github.kyukyunyorituryo.aozoraepub3.util.LogAppender;
@@ -33,77 +35,66 @@ import io.github.kyukyunyorituryo.aozoraepub3.util.LogAppender;
 public class ImageUtils
 {
 	/** 4bitグレースケール時のRGB階調カラーモデル Singleton */
-	static ColorModel GRAY16_COLOR_MODEL;
+	//static ColorModel GRAY16_COLOR_MODEL;
 	/** 8bitグレースケール時のRGB階調カラーモデル Singleton */
-	static ColorModel GRAY256_COLOR_MODEL;
+	//static ColorModel GRAY256_COLOR_MODEL;
 
 	public static final int NOMBRE_TOP = 1;
 	public static final int NOMBRE_BOTTOM = 2;
 	public static final int NOMBRE_TOPBOTTOM = 3;
 
 	/** png出力用 */
-	static ImageWriter pngImageWriter;
+	//static ImageWriter pngImageWriter;
 	/** jpeg出力用 */
-	static ImageWriter jpegImageWriter;
+	//static ImageWriter jpegImageWriter;
 
 	/** 4bitグレースケール時のRGB階調カラーモデル取得 */
-	static ColorModel getGray16ColorModel()
-	{
-		if (GRAY16_COLOR_MODEL == null) {
-			byte[] GRAY16_VALUES = new byte[]{
-				0,17,34,51,68,85,102,119,-120,-103,-86,-69,-52,-35,-18,-1};
-			GRAY16_COLOR_MODEL = new IndexColorModel(4, GRAY16_VALUES.length, GRAY16_VALUES, GRAY16_VALUES, GRAY16_VALUES);
-		}
-		return GRAY16_COLOR_MODEL;
-	}
+	//static ColorModel getGray16ColorModel()
 	/** 8bitグレースケール時のRGB階調カラーモデル取得 */
-	static ColorModel getGray256ColorModel()
-	{
-		if (GRAY256_COLOR_MODEL == null) {
-			byte[] GRAY256_VALUES = new byte[]{
-				0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
-				32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,
-				64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,
-				96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,
-				-128,-127,-126,-125,-124,-123,-122,-121,-120,-119,-118,-117,-116,-115,-114,-113,-112,-111,-110,-109,-108,-107,-106,-105,-104,-103,-102,-101,-100,-99,-98,-97,
-				-96,-95,-94,-93,-92,-91,-90,-89,-88,-87,-86,-85,-84,-83,-82,-81,-80,-79,-78,-77,-76,-75,-74,-73,-72,-71,-70,-69,-68,-67,-66,-65,
-				-64,-63,-62,-61,-60,-59,-58,-57,-56,-55,-54,-53,-52,-51,-50,-49,-48,-47,-46,-45,-44,-43,-42,-41,-40,-39,-38,-37,-36,-35,-34,-33,
-				-32,-31,-30,-29,-28,-27,-26,-25,-24,-23,-22,-21,-20,-19,-18,-17,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1};
-			GRAY256_COLOR_MODEL = new IndexColorModel(8, GRAY256_VALUES.length, GRAY256_VALUES, GRAY256_VALUES, GRAY256_VALUES);
-		}
-		return GRAY256_COLOR_MODEL;
-	}
+	//static ColorModel getGray256ColorModel()
 
 
 	/** ファイルまたはURLの文字列から画像を読み込む
 	 * 読み込めなければnull */
-	static public BufferedImage loadImage(String path)
-	{
+	public static Bitmap loadImage(String path) {
+		InputStream is = null;
 		try {
-			InputStream is;
 			if (path.startsWith("http")) {
-				is = new BufferedInputStream(new URI(path).toURL().openStream(), 8192);
+				// URLから画像を取得
+				URL url = new URI(path).toURL();
+				HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+				connection.setDoInput(true);
+				connection.connect();
+				is = new BufferedInputStream(connection.getInputStream());
 			} else {
+				// ローカルファイルから画像を取得
 				File file = new File(path);
 				if (!file.exists()) return null;
-				is = new BufferedInputStream(new FileInputStream(file), 8192);
+				is = new BufferedInputStream(new FileInputStream(file));
 			}
-			return readImage(path.substring(path.lastIndexOf('.')+1).toLowerCase(), is);
-		} catch (Exception e) { return null; }
+			return BitmapFactory.decodeStream(is);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			try {
+				if (is != null) is.close();
+			} catch (IOException ignored) { }
+		}
 	}
 
-	final static AffineTransform NO_TRANSFORM = AffineTransform.getTranslateInstance(0, 0);
+	//final static AffineTransform NO_TRANSFORM = AffineTransform.getTranslateInstance(0, 0);
 	/** ストリームから画像を読み込み */
-	static public BufferedImage readImage(String ext, InputStream is) throws IOException
-	{
-		BufferedImage image;
-			try {
-				image = ImageIO.read(is);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+	public static Bitmap readImage(String ext, InputStream is) throws IOException {
+		try {
+			return BitmapFactory.decodeStream(is);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			if (is != null) {
+				is.close();
 			}
-		is.close();
-		return image;
+		}
 	}
 
 	/** 大きすぎる画像は縮小して出力
@@ -121,9 +112,9 @@ public class ImageUtils
 	 * @param autoMarginLimitV 余白除去 最大%
 	 * @param autoMarginWhiteLevel 白画素として判別する白さ 100が白
 	 * @param autoMarginPadding 余白除去後に追加するマージン */
-	static public void writeImage(InputStream is, BufferedImage srcImage, ZipArchiveOutputStream zos, ImageInfo imageInfo,
-			float jpegQuality, LookupOp gammaOp, int maxImagePixels, int maxImageW, int maxImageH, int dispW, int dispH,
-			int autoMarginLimitH, int autoMarginLimitV, int autoMarginWhiteLevel, float autoMarginPadding, int autoMarginNombre, float nombreSize) {
+	static public void writeImage(InputStream is, Bitmap srcImage, ZipArchiveOutputStream zos, ImageInfo imageInfo,
+								  float jpegQuality, ColorMatrix gammaMatrix, int maxImagePixels, int maxImageW, int maxImageH, int dispW, int dispH,
+								  int autoMarginLimitH, int autoMarginLimitV, int autoMarginWhiteLevel, float autoMarginPadding, int autoMarginNombre, float nombreSize) {
 		try {
 		String ext = imageInfo.getExt();
 
@@ -137,7 +128,7 @@ public class ImageUtils
 		byte[] imgBuf = null;
 
 		//回転とコントラスト調整なら読み込んでおく
-		if (srcImage == null && (imageInfo.rotateAngle != 0 || gammaOp != null)) srcImage = readImage(ext, is);
+		if (srcImage == null && (imageInfo.rotateAngle != 0 || gammaMatrix != null)) srcImage = readImage(ext, is);
 
 		int[] margin = null;
 		if (autoMarginLimitH > 0 || autoMarginLimitV > 0) {
@@ -148,8 +139,8 @@ public class ImageUtils
 			//画像がなければ読み込み 変更なしの時にそのまま出力できるように一旦バッファに読み込む
 			if (srcImage == null) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				//IOUtils.copy(is, baos);
-				is.transferTo(baos);
+				IOUtils.copy(is, baos);
+				//is.transferTo(baos);
 				imgBuf = baos.toByteArray();
                 try (ByteArrayInputStream bais = new ByteArrayInputStream(imgBuf)) {
                     srcImage = readImage(ext, bais);
@@ -188,60 +179,62 @@ public class ImageUtils
 		if (maxImageW > 0) scale = Math.min(scale, (double)maxImageW/w); //最大幅指定
 		if (maxImageH > 0) scale = Math.min(scale, (double)maxImageH/h); //最大高さ指定
 
-		if (scale >= 1 && (gammaOp == null || srcImage.getType() == BufferedImage.TYPE_INT_RGB)) {
+		if (scale >= 1 && (gammaMatrix == null || srcImage.getConfig() == Bitmap.Config.ARGB_8888)) {
 			if (srcImage == null) {
 				//変更なしならそのままファイル出力
-				//IOUtils.copy(is, zos);
-				is.transferTo(zos);
+				IOUtils.copy(is, zos);
+				//is.transferTo(zos);
 			} else {
 				if (margin == null && imgBuf != null && imageInfo.rotateAngle==0) {
 					//余白除去が無く画像も編集されていなければバッファからそのまま出力
                     try (ByteArrayInputStream bais = new ByteArrayInputStream(imgBuf)) {
-                        bais.transferTo(zos);
+                        //bais.transferTo(zos);
+						IOUtils.copy(bais, zos);
                     }
 				} else {
 					//編集済の画像なら同じ画像形式で書き出し 余白があれば切り取る
 					if (imageInfo.rotateAngle != 0) {
-						BufferedImage outImage = new BufferedImage(h, w, srcImage.getType());
-						Graphics2D g = outImage.createGraphics();
-						try {
-							g.setColor(Color.WHITE);
-							g.fillRect(0, 0, h, w);
-							g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-							g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-							int x = 0; int y = 0;
-							AffineTransform at;
-							if (imageInfo.rotateAngle == 90) {
-								at = AffineTransform.getQuadrantRotateInstance(1, 0, 0);
-								at.translate(0, -imgH);
-								if (margin != null) {
-									x = -margin[3];
-									y = -margin[0];
-								}
-							} else {
-								at = AffineTransform.getQuadrantRotateInstance(-1, 0, 0);
-								at.translate(-imgW, 0);
-								if (margin != null) {
-									x = -margin[1];
-									y = -margin[2];
-								}
+						Bitmap outImage = Bitmap.createBitmap(h, w, Bitmap.Config.ARGB_8888);
+						Canvas canvas = new Canvas(outImage);
+						canvas.drawColor(Color.WHITE);
+						Matrix matrix = new Matrix();
+						int x = 0, y = 0;
+
+						if (imageInfo.rotateAngle == 90) {
+							matrix.postRotate(90);
+							matrix.postTranslate(0, -srcImage.getHeight());
+							if (margin != null) {
+								x = -margin[3];
+								y = -margin[0];
 							}
-							AffineTransformOp ato = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
-							g.drawImage(srcImage, ato, x, y);
-						} finally {
-							g.dispose();
+						} else {
+							matrix.postRotate(-90);
+							matrix.postTranslate(-srcImage.getWidth(), 0);
+							if (margin != null) {
+								x = -margin[1];
+								y = -margin[2];
+							}
 						}
+
+						canvas.drawBitmap(srcImage, matrix, null);
 						srcImage = outImage;//入れ替え
-					} else if (margin != null) srcImage = srcImage.getSubimage(margin[0], margin[1], srcImage.getWidth()-margin[2]-margin[0], srcImage.getHeight()-margin[3]-margin[1]);
-					if (gammaOp != null) {
-						BufferedImage filterdImage = new BufferedImage(srcImage.getWidth(), srcImage.getHeight(), BufferedImage.TYPE_INT_RGB);
-						srcImage = gammaOp.filter(srcImage, filterdImage);
-						srcImage = filterdImage;
+					} else if (margin != null) {
+						srcImage = Bitmap.createBitmap(srcImage, margin[0], margin[1],
+								srcImage.getWidth() - margin[2] - margin[0],
+								srcImage.getHeight() - margin[3] - margin[1]);
 					}
+
+					if (gammaMatrix != null) {
+						srcImage = applyColorMatrix(srcImage, gammaMatrix);
+					}
+
 					_writeImage(zos, srcImage, ext, jpegQuality);
 					imageInfo.setOutWidth(srcImage.getWidth());
 					imageInfo.setOutHeight(srcImage.getHeight());
-					if (imageInfo.rotateAngle != 0) LogAppender.println("画像回転"+": "+imageInfo.getOutFileName()+" ("+h+","+w+")");
+
+					if (imageInfo.rotateAngle != 0) {
+						LogAppender.println("画像回転" + ": " + imageInfo.getOutFileName() + " (" + h + "," + w + ")");
+					}
 				}
 			}
 		} else {
@@ -254,111 +247,88 @@ public class ImageUtils
 			}
 			//画像がなければ読み込み
 			if (srcImage == null) srcImage = readImage(ext, is);
-			int imageType = srcImage.getType();
-			BufferedImage outImage;
-			ColorModel colorModel;
-			WritableRaster raster;
-			switch (gammaOp==null?imageType:BufferedImage.TYPE_INT_RGB) {
-			case BufferedImage.TYPE_BYTE_BINARY:
-				colorModel = srcImage.getColorModel();
-				colorModel = getGray16ColorModel();
-				raster = colorModel.createCompatibleWritableRaster(scaledW, scaledH);
-				outImage = new BufferedImage(colorModel, raster, true, null);
-				break;
-			case BufferedImage.TYPE_BYTE_INDEXED:
-				colorModel = srcImage.getColorModel();
-				raster = colorModel.createCompatibleWritableRaster(scaledW, scaledH);
-				outImage = new BufferedImage(colorModel, raster, true, null);
-				break;
-			/*case BufferedImage.TYPE_BYTE_GRAY:
-				//PngEncoderのGRAYが薄くなるのでindexにする
-				colorModel = srcImage.getColorModel();
-				if (colorModel.getPixelSize() <= 4) colorModel = getGray16ColorModel();
-				else colorModel = getGray256ColorModel();
-				raster = colorModel.createCompatibleWritableRaster(scaledW, scaledH);
-				outImage = new BufferedImage(colorModel, raster, true, null);
-				break;*/
-			case BufferedImage.TYPE_BYTE_GRAY:
-				outImage = new BufferedImage(scaledW, scaledH, BufferedImage.TYPE_BYTE_GRAY);
-				break;
-			case BufferedImage.TYPE_USHORT_GRAY:
-				outImage = new BufferedImage(scaledW, scaledH, BufferedImage.TYPE_USHORT_GRAY);
-				break;
-			default:
-				outImage = new BufferedImage(scaledW, scaledH, BufferedImage.TYPE_INT_RGB);
+
+			Config imageType = gammaMatrix != null ? Config.ARGB_8888 : srcImage.getConfig();
+			Bitmap outImage;
+
+			switch (imageType) {
+				case ALPHA_8: // モノクロ（BYTE_BINARY 相当）
+					outImage = Bitmap.createBitmap(scaledW, scaledH, Config.ALPHA_8);
+					break;
+				case RGB_565: // 16bitカラー（BYTE_INDEXED や USHORT_GRAY に相当）
+					outImage = Bitmap.createBitmap(scaledW, scaledH, Config.RGB_565);
+					break;
+				case ARGB_8888: // フルカラー (INT_RGB に相当)
+				default:
+					outImage = Bitmap.createBitmap(scaledW, scaledH, Config.ARGB_8888);
+					break;
 			}
-			Graphics2D g = outImage.createGraphics();
+			Canvas g = new Canvas(outImage);
 			try {
-				if (imageType == BufferedImage.TYPE_BYTE_BINARY && imageType == BufferedImage.TYPE_BYTE_INDEXED && imageType == BufferedImage.TYPE_INT_ARGB) {
-					g.setColor(Color.WHITE);
-					g.fillRect(0, 0, scaledW, scaledH);
+				if (outImage.getConfig() == Bitmap.Config.ALPHA_8 || outImage.getConfig() == Bitmap.Config.RGB_565 || outImage.getConfig() == Bitmap.Config.ARGB_8888) {
+					g.drawColor(Color.WHITE);
 				}
-				g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-				g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-				AffineTransform at = AffineTransform.getScaleInstance(scale, scale);
-				int x = 0;
-				int y = 0;
+
+				Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+				Matrix at = new Matrix();
+				at.setScale((float) scale, (float) scale);
+				int x = 0, y = 0;
+
 				if (imageInfo.rotateAngle == 0) {
 					if (margin != null) {
-						x = (int)(-margin[0]*scale+0.5);
-						y = (int)(-margin[1]*scale+0.5);
+						x = (int) (-margin[0] * scale + 0.5);
+						y = (int) (-margin[1] * scale + 0.5);
 					}
 				} else if (imageInfo.rotateAngle == 90) {
-					at.rotate(Math.toRadians(imageInfo.rotateAngle), 0, 0);
-					at.translate(0, -imgH);
+					at.postRotate(90);
+					at.postTranslate(0, -imgH);
 					if (margin != null) {
-						x = (int)(-margin[3]*scale+0.5);
-						y = (int)(-margin[0]*scale+0.5);
+						x = (int) (-margin[3] * scale + 0.5);
+						y = (int) (-margin[0] * scale + 0.5);
 					}
 				} else {
-					at.quadrantRotate(-1, 0, 0);
-					at.translate(-imgW, 0);
+					at.postRotate(-90);
+					at.postTranslate(-imgW, 0);
 					if (margin != null) {
-						x = (int)(-margin[1]*scale+0.5);
-						y = (int)(-margin[2]*scale+0.5);
+						x = (int) (-margin[1] * scale + 0.5);
+						y = (int) (-margin[2] * scale + 0.5);
 					}
 				}
-				AffineTransformOp ato = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
-				g.drawImage(srcImage, ato, x, y);
+
+				g.drawBitmap(outImage, at, paint);
 			} finally {
-				g.dispose();
+				// Graphics2D の dispose() 相当の処理は不要
 			}
 			//ImageIO.write(outImage, imageInfo.getExt(), zos);
 			//コントラスト調整
-			if (gammaOp != null) {
-				BufferedImage filterdImage = new BufferedImage(outImage.getWidth(), outImage.getHeight(), BufferedImage.TYPE_INT_RGB);
-				outImage = gammaOp.filter(outImage, filterdImage);
-				outImage = filterdImage;
-				filterdImage = null;
-				//インデックス化
-				switch (imageType) {
-				case BufferedImage.TYPE_BYTE_BINARY:
-					colorModel = srcImage.getColorModel();
-					colorModel = getGray16ColorModel();
-					raster = colorModel.createCompatibleWritableRaster(scaledW, scaledH);
-					filterdImage = new BufferedImage(colorModel, raster, true, null);
+			// ガンマ補正
+			if (gammaMatrix != null) {
+				Bitmap filteredImage = Bitmap.createBitmap(outImage.getWidth(), outImage.getHeight(), Bitmap.Config.ARGB_8888);
+				Canvas g2 = new Canvas(filteredImage);
+				Paint paint = new Paint();
+				paint.setColorFilter(new ColorMatrixColorFilter(gammaMatrix));
+				g2.drawBitmap(outImage, 0, 0, paint);
+				outImage = filteredImage;
+			}
+
+			// インデックス化・グレースケール変換
+			Bitmap filteredImage = null;
+			switch (outImage.getConfig()) {
+				case ALPHA_8:
+					filteredImage = Bitmap.createBitmap(scaledW, scaledH, Bitmap.Config.ALPHA_8);
 					break;
-				case BufferedImage.TYPE_BYTE_INDEXED:
-					colorModel = srcImage.getColorModel();
-					raster = colorModel.createCompatibleWritableRaster(scaledW, scaledH);
-					filterdImage = new BufferedImage(colorModel, raster, true, null);
+				case RGB_565:
+					filteredImage = Bitmap.createBitmap(scaledW, scaledH, Bitmap.Config.RGB_565);
 					break;
-				case BufferedImage.TYPE_BYTE_GRAY:
-					filterdImage = new BufferedImage(scaledW, scaledH, BufferedImage.TYPE_BYTE_GRAY);
+				case ARGB_8888:
+					filteredImage = Bitmap.createBitmap(scaledW, scaledH, Bitmap.Config.ARGB_8888);
 					break;
-				case BufferedImage.TYPE_USHORT_GRAY:
-					filterdImage = new BufferedImage(scaledW, scaledH, BufferedImage.TYPE_USHORT_GRAY);
-					break;
-				}
-				if (filterdImage != null) {
-					g = filterdImage.createGraphics();
-					try {
-						g.drawImage(outImage, 0, 0, null);
-					} finally {
-						g.dispose();
-					}
-					outImage = filterdImage;
-				}
+			}
+
+			if (filteredImage != null) {
+				Canvas g3 = new Canvas(filteredImage);
+				g3.drawBitmap(outImage, 0, 0, null);
+				outImage = filteredImage;
 			}
 			_writeImage(zos, outImage, ext, jpegQuality);
 			imageInfo.setOutWidth(outImage.getWidth());
@@ -375,68 +345,41 @@ public class ImageUtils
 			e.printStackTrace();
 		}
 	}
-	/** 画像を出力 マージン指定があればカット
-	 * //@param margin カットするピクセル数(left, top, right, bottom) */
-	static private void _writeImage(ZipArchiveOutputStream zos, BufferedImage srcImage, String ext, float jpegQuality) throws IOException
-	{
-		if ("png".equals(ext)) {
-			/*//PNGEncoder kindlegenでエラーになるのと色が反映されない
-			PngEncoder pngEncoder = new PngEncoder();
-			int pngColorType = PngEncoder.COLOR_TRUECOLOR;
-			switch (srcImage.getType()) {
-			case BufferedImage.TYPE_BYTE_BINARY:
-				pngColorType = PngEncoder.COLOR_INDEXED; break;
-			case BufferedImage.TYPE_BYTE_INDEXED:
-				pngColorType = PngEncoder.COLOR_INDEXED; break;
-			case BufferedImage.TYPE_BYTE_GRAY:
-				pngColorType = PngEncoder.COLOR_GRAYSCALE; break;
-			}
-			pngEncoder.setColorType(pngColorType);
-			pngEncoder.setCompression(PngEncoder.BEST_COMPRESSION);
-			pngEncoder.setIndexedColorMode(PngEncoder.INDEXED_COLORS_AUTO);
-			pngEncoder.encode(srcImage, zos);
-			*/
-			//ImageIO.write(srcImage, "PNG", zos);
-			ImageWriter imageWriter = getPngImageWriter();
-			imageWriter.setOutput(ImageIO.createImageOutputStream(zos));
-			imageWriter.write(srcImage);
-		} else if ("jpeg".equals(ext) || "jpg".equals(ext)) {
-			ImageWriter imageWriter = getJpegImageWriter();
-			imageWriter.setOutput(ImageIO.createImageOutputStream(zos));
-			ImageWriteParam iwp = imageWriter.getDefaultWriteParam();
-			if (iwp.canWriteCompressed()) {
-				try {
-					iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-					iwp.setCompressionQuality(jpegQuality);
-					imageWriter.write(null, new IIOImage(srcImage, null, null), iwp);
-				} catch (Exception e) { e.printStackTrace(); }
-			} else {
-				imageWriter.write(srcImage);
-			}
+	/** 画像をZIPに保存 (マージン指定があればカット) */
+	static private void _writeImage(ZipArchiveOutputStream zos, Bitmap srcImage, String ext, float jpegQuality) throws IOException {
+		zos.putArchiveEntry(new org.apache.commons.compress.archivers.zip.ZipArchiveEntry("image." + ext));
+
+		if ("png".equalsIgnoreCase(ext)) {
+			// PNG 出力 (最高画質で圧縮)
+			srcImage.compress(CompressFormat.PNG, 100, zos);
+		} else if ("jpeg".equalsIgnoreCase(ext) || "jpg".equalsIgnoreCase(ext)) {
+			// JPEG 出力 (指定された品質で圧縮)
+			srcImage.compress(CompressFormat.JPEG, (int) (jpegQuality * 100), zos);
 		} else {
-			ImageIO.write(srcImage, ext, zos);
+			// デフォルトは PNG
+			srcImage.compress(CompressFormat.PNG, 100, zos);
 		}
+
+		zos.closeArchiveEntry();
 		zos.flush();
 	}
-
-	static private ImageWriter getPngImageWriter()
-	{
-		if (pngImageWriter != null) return pngImageWriter;
-		Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("png");
-		pngImageWriter = writers.next();
-		//jai-imageioのpngの挙動がおかしいのでインストールされていても使わない
-		if (writers.hasNext() && pngImageWriter.getClass().getName().endsWith("CLibPNGImageWriter")) pngImageWriter = writers.next();
-		return pngImageWriter;
+	/** PNG画像のエンコーダー（Androidでは不要なのでダミー関数） */
+	static private Bitmap.CompressFormat getPngImageWriter() {
+		return Bitmap.CompressFormat.PNG;
 	}
-
-	static private ImageWriter getJpegImageWriter()
-	{
-		if (jpegImageWriter!= null) return jpegImageWriter;
-		Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
-		jpegImageWriter = writers.next();
-		return jpegImageWriter;
+	/** JPEG画像のエンコーダー（Androidでは `Bitmap.CompressFormat.JPEG` を使用） */
+	static private Bitmap.CompressFormat getJpegImageWriter() {
+		return Bitmap.CompressFormat.JPEG;
 	}
-
+	/** `ColorMatrix` を適用する（ガンマ補正） */
+	private static Bitmap applyColorMatrix(Bitmap src, ColorMatrix colorMatrix) {
+		Bitmap newBitmap = Bitmap.createBitmap(src.getWidth(), src.getHeight(), Bitmap.Config.ARGB_8888);
+		Canvas canvas = new Canvas(newBitmap);
+		android.graphics.Paint paint = new android.graphics.Paint();
+		paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+		canvas.drawBitmap(src, 0, 0, paint);
+		return newBitmap;
+	}
 	/** 余白の画素数取得  左右のみずれ調整
 	 * @param image 余白を検出する画像
 	 * @param limitH 余白のサイズ横 0.0-1.0
@@ -446,7 +389,7 @@ public class ImageUtils
 	 * @param ignoreEdge 行列のチェック時に両端を無視するピクセル数
 	 * @param dustSize ゴミのピクセルサイズ
 	 * @return 余白画素数(left, top, right, bottom) */
-	static private int[] getPlainMargin(BufferedImage image, float limitH, float limitV, float whiteLevel, float padding, int startPixel, int ignoreEdge, int dustSize, int nombreType, float nombreSize)
+	static private int[] getPlainMargin(Bitmap image, float limitH, float limitV, float whiteLevel, float padding, int startPixel, int ignoreEdge, int dustSize, int nombreType, float nombreSize)
 	{
 		int[] margin = new int[4]; //left, top, right, bottom
 		int width = image.getWidth();
@@ -622,43 +565,54 @@ public class ImageUtils
 		margin[3] -= paddingV; if (margin[3] < 0) margin[3] = 0;
 		return margin;
 	}
-
-	/** 指定範囲の白い画素数の比率を返す
-	 * @param image 比率をチェックする画像
-	 * @param w 比率をチェックする幅
-	 * @param offsetY 画像内の縦位置
-	 * @param limitPixel これよりも黒部分が多かったら終了 値はlimit+1が帰る
-	 * @return 白画素の比率 0.0-1.0 */
-	static private int getColoredPixelsH(BufferedImage image, int w, int offsetY, int rgbLimit, int limitPixel, int ignoreEdgeL, int ignoreEdgeR, int dustSize)
-	{
-		//白でないピクセル数
+	/**
+	 * 指定範囲の白くない画素数をカウント
+	 *
+	 * @param image       比率をチェックする画像
+	 * @param w           比率をチェックする幅
+	 * @param offsetY     画像内の縦位置
+	 * @param rgbLimit    しきい値（これよりも黒い場合カウント）
+	 * @param limitPixel  これよりも黒部分が多かったら終了
+	 * @param ignoreEdgeL 左端の無視する範囲
+	 * @param ignoreEdgeR 右端の無視する範囲
+	 * @param dustSize    小さいノイズを無視するためのサイズ
+	 * @return 白くないピクセルの数
+	 */
+	private static int getColoredPixelsH(Bitmap image, int w, int offsetY, int rgbLimit, int limitPixel, int ignoreEdgeL, int ignoreEdgeR, int dustSize) {
 		int coloredPixels = 0;
 
-		for (int x=w-1-ignoreEdgeR; x>=ignoreEdgeL; x--) {
-			if (isColored(image.getRGB(x, offsetY), rgbLimit)) {
-				//ゴミ除外 ゴミのサイズ分先に移動する
+		for (int x = w - 1 - ignoreEdgeR; x >= ignoreEdgeL; x--) {
+			int pixel = image.getPixel(x, offsetY);
+			if (isColored(pixel, rgbLimit)) {
+				// ゴミ(ノイズ)を除外する
 				if (dustSize < 4 || !isDust(image, x, image.getWidth(), offsetY, image.getHeight(), dustSize, rgbLimit)) {
 					coloredPixels++;
 					if (limitPixel < coloredPixels) return coloredPixels;
 				}
 			}
 		}
+
 		return coloredPixels;
 	}
+
 	/** 指定範囲の白い画素数の比率を返す
-	 * @param image 比率をチェックする画像
+	 * @param image 比率をチェックする画像 (Bitmap)
 	 * @param h 比率をチェックする高さ
 	 * @param offsetX 画像内の横位置
+	 * @param rgbLimit 白と判定するRGB値の閾値
 	 * @param limitPixel これよりも白比率が小さくなったら終了 値はlimit+1が帰る
-	 * @return 白画素の比率 0.0-1.0 */
-	static private int getColordPixelsV(BufferedImage image, int h, int offsetX, int rgbLimit, int limitPixel, int ignoreTop, int ignoreBotttom, int dustSize)
-	{
-		//白でないピクセル数
+	 * @param ignoreTop 無視する上側の範囲
+	 * @param ignoreBottom 無視する下側の範囲
+	 * @param dustSize ノイズ除去の閾値
+	 * @return 白画素の比率 (0.0 - 1.0)
+	 */
+	static private int getColordPixelsV(Bitmap image, int h, int offsetX, int rgbLimit, int limitPixel, int ignoreTop, int ignoreBottom, int dustSize) {
 		int coloredPixels = 0;
 
-		for (int y=h-1-ignoreBotttom; y>=ignoreTop; y--) {
-			if (isColored(image.getRGB(offsetX, y), rgbLimit)) {
-				//ゴミ除外 ゴミのサイズ分先に移動する
+		for (int y = h - 1 - ignoreBottom; y >= ignoreTop; y--) {
+			int pixel = image.getPixel(offsetX, y);
+			if (isColored(pixel, rgbLimit)) {
+				// ゴミ除外
 				if (dustSize < 4 || !isDust(image, offsetX, image.getWidth(), y, image.getHeight(), dustSize, rgbLimit)) {
 					coloredPixels++;
 					if (limitPixel < coloredPixels) return coloredPixels;
@@ -667,85 +621,104 @@ public class ImageUtils
 		}
 		return coloredPixels;
 	}
-
 	static boolean isColored(int rgb, int rgbLimit)
 	{
 		return rgbLimit > (rgb>>16 & 0xFF) || rgbLimit > (rgb>>8 & 0xFF) || rgbLimit > (rgb & 0xFF);
 	}
 
-	/** ゴミをチェック */
-	static boolean isDust(BufferedImage image, int curX, int maxX, int curY, int maxY, int dustSize, int rgbLimit)
-	{
+	/**
+	 * ゴミ（ノイズ）をチェック
+	 *
+	 * @param image    対象の画像
+	 * @param curX     現在のX座標
+	 * @param maxX     画像の最大幅
+	 * @param curY     現在のY座標
+	 * @param maxY     画像の最大高さ
+	 * @param dustSize ノイズとみなす最大サイズ
+	 * @param rgbLimit しきい値（これよりも黒い場合ノイズと判定）
+	 * @return ゴミ（ノイズ）である場合 `true`
+	 */
+	public static boolean isDust(Bitmap image, int curX, int maxX, int curY, int maxY, int dustSize, int rgbLimit) {
 		if (dustSize == 0) return false;
 
-		//ゴミサイズの縦横2倍の範囲
-		int minX = Math.max(0, curX-dustSize-1);
-		maxX = Math.min(maxX, curX+dustSize+1);
-		int minY = Math.max(0, curY-dustSize-1);
-		maxY = Math.min(maxY, curY+dustSize+1);
+		// ゴミサイズの縦横2倍の範囲
+		int minX = Math.max(0, curX - dustSize - 1);
+		maxX = Math.min(maxX, curX + dustSize + 1);
+		int minY = Math.max(0, curY - dustSize - 1);
+		maxY = Math.min(maxY, curY + dustSize + 1);
 
-		//現在列
+		// 縦方向の黒ピクセル数をカウント
 		int h = 1;
-		for (int y=curY-1; y>=minY; y--) {
-			if (isColored(image.getRGB(curX, y), rgbLimit)) h++; else break;
+		for (int y = curY - 1; y >= minY; y--) {
+			if (isColored(image.getPixel(curX, y), rgbLimit)) h++;
+			else break;
 		}
-		for (int y=curY+1; y<maxY; y++) {
-			if (isColored(image.getRGB(curX, y), rgbLimit)) h++; else break;
+		for (int y = curY + 1; y < maxY; y++) {
+			if (isColored(image.getPixel(curX, y), rgbLimit)) h++;
+			else break;
 		}
 		if (h > dustSize) return false;
 
+		// 横方向の黒ピクセル数をカウント
 		int w = 1;
-		for (int x=curX-1; x>=minX; x--) {
-			if (isColored(image.getRGB(x, curY), rgbLimit)) w++; else break;
+		for (int x = curX - 1; x >= minX; x--) {
+			if (isColored(image.getPixel(x, curY), rgbLimit)) w++;
+			else break;
 		}
-		for (int x=curX+1; x<maxX; x++) {
-			if (isColored(image.getRGB(x, curY), rgbLimit)) w++; else break;
+		for (int x = curX + 1; x < maxX; x++) {
+			if (isColored(image.getPixel(x, curY), rgbLimit)) w++;
+			else break;
 		}
 		if (w > dustSize) return false;
 
-		//左
-		w = 1; //黒画素のある幅
-		for (int x=curX-1; x>=minX; x--) {
+		// 左方向チェック
+		w = 1;
+		for (int x = curX - 1; x >= minX; x--) {
 			h = 0;
-			for (int y=maxY-1; y>=minY; y--) {
-				if (isColored(image.getRGB(x, y), rgbLimit)) h++;
+			for (int y = maxY - 1; y >= minY; y--) {
+				if (isColored(image.getPixel(x, y), rgbLimit)) h++;
 			}
 			if (h > dustSize) return false;
-			if (h == 0) break; //すべて白なら抜ける
+			if (h == 0) break; // 全て白なら終了
 			w++;
 		}
-		//右
-		for (int x=curX+1; x<maxX; x++) {
+
+		// 右方向チェック
+		for (int x = curX + 1; x < maxX; x++) {
 			h = 0;
-			for (int y=maxY-1; y>=minY; y--) {
-				if (isColored(image.getRGB(x, y), rgbLimit)) h++;
+			for (int y = maxY - 1; y >= minY; y--) {
+				if (isColored(image.getPixel(x, y), rgbLimit)) h++;
 			}
 			if (h > dustSize) return false;
-			if (h == 0) break; //すべて白なら抜ける
+			if (h == 0) break; // 全て白なら終了
 			w++;
 		}
 		if (w > dustSize) return false;
-		//上
-		h = 1; //黒画素のある高さ
-		for (int y=curY-1; y>=minY; y--) {
+
+		// 上方向チェック
+		h = 1;
+		for (int y = curY - 1; y >= minY; y--) {
 			w = 0;
-			for (int x=maxX-1; x>=minX; x--) {
-				if (isColored(image.getRGB(x, y), rgbLimit)) w++;
+			for (int x = maxX - 1; x >= minX; x--) {
+				if (isColored(image.getPixel(x, y), rgbLimit)) w++;
 			}
 			if (w > dustSize) return false;
-			if (w == 0) break; //すべて白なら抜ける
+			if (w == 0) break; // 全て白なら終了
 			h++;
 		}
-		//下
-		for (int y=curY+1; y<maxY; y++) {
+
+		// 下方向チェック
+		for (int y = curY + 1; y < maxY; y++) {
 			w = 0;
-			for (int x=maxX-1; x>=minX; x--) {
-				if (isColored(image.getRGB(x, y), rgbLimit)) w++;
+			for (int x = maxX - 1; x >= minX; x--) {
+				if (isColored(image.getPixel(x, y), rgbLimit)) w++;
 			}
 			if (w > dustSize) return false;
-			if (w == 0) break; //すべて白なら抜ける
+			if (w == 0) break; // 全て白なら終了
 			h++;
 		}
+
 		return h <= dustSize;
 	}
+
 }
