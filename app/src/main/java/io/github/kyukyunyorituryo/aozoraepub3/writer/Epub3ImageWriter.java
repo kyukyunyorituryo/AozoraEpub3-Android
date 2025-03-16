@@ -1,5 +1,7 @@
 package io.github.kyukyunyorituryo.aozoraepub3.writer;
 
+import android.content.Context;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -57,11 +59,10 @@ public class Epub3ImageWriter extends Epub3Writer
 	/** コンストラクタ
 	 * //@param templatePath epubテンプレート格納パス文字列 最後は"/"
 	 */
-	public Epub3ImageWriter(String jarPath)
+	public Epub3ImageWriter(Context context)
 	{
-		super(jarPath);
+		super(context);
 	}
-
 	/** 本文を出力する
 	 * setFileNamesで sortedFileNames が設定されている必要がある
 	 * @throws RarException */
