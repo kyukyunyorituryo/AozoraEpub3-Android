@@ -1,8 +1,9 @@
 package io.github.kyukyunyorituryo.aozoraepub3.writer;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.ByteLookupTable;
-import java.awt.image.LookupOp;
+import android.graphics.Bitmap;
+import android.graphics.ColorMatrix;
+import android.widget.ProgressBar;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -25,7 +26,6 @@ import java.util.UUID;
 import java.util.Vector;
 import java.util.zip.CRC32;
 
-import javax.swing.JProgressBar;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -200,7 +200,8 @@ public class Epub3Writer
 	float jpegQuality = 0.8f;
 
 	/** ガンマフィルタ */
-	LookupOp gammaOp;
+//	LookupOp gammaOp;
+	ColorMatrix gammaMatrix;
 
 	/** nav.xhtml階層化 */
 	boolean navNest = false;
@@ -268,7 +269,7 @@ public class Epub3Writer
 	ImageInfoReader imageInfoReader;
 
 	/** プログレスバー AozoraConverterからも使う 利用しない場合はnull */
-	public JProgressBar jProgressBar;
+	public ProgressBar jProgressBar;
 
 	/** 処理キャンセルフラグ */
 	boolean canceled = false;
@@ -289,7 +290,7 @@ public class Epub3Writer
 		this.outImageFileNames = new HashSet<String>();
 	}
 	/** プログレスバー設定 */
-	public void setProgressBar(JProgressBar jProgressBar)
+	public void setProgressBar(ProgressBar jProgressBar)
 	{
 		this.jProgressBar = jProgressBar;
 	}
@@ -332,12 +333,18 @@ public class Epub3Writer
 		if (gamma < 1 && gamma > 0) gammaOp = new RescaleOp(1/gamma, -256*1/gamma+256, null);
 		else if (gamma > 1) gammaOp = new RescaleOp(gamma, 0, null);*/
 		if (gamma != 1) {
-			byte[] table = new byte[256];
-			for (int i=0; i<256; i++) {
-				table[i] = (byte)Math.min(255, Math.round(255*Math.pow((i/255.0), 1/gamma)));
+			ColorMatrix gammaMatrix = new ColorMatrix();
+			float invGamma = 1.0f / gamma;
+			float[] gammaArray = new float[20];
+
+			for (int i = 0; i < 20; i++) {
+				gammaArray[i] = (i % 6 == 0) ? (float) Math.pow(i / 255.0, invGamma) * 255 : 0;
 			}
-			gammaOp = new LookupOp(new ByteLookupTable(0, table), null);
-		} else gammaOp = null;
+
+			gammaMatrix.set(gammaArray);
+		} else {
+			gammaMatrix = null;
+		}
 
 		this.autoMarginLimitH = autoMarginLimitH;
 		this.autoMarginLimitV = autoMarginLimitV;
@@ -749,7 +756,7 @@ public class Epub3Writer
 
 		if (this.canceled) return;
 		//プログレスバーにテキスト進捗分を追加
-		if (this.jProgressBar != null && !bookInfo.imageOnly) this.jProgressBar.setValue(bookInfo.totalLineNum/10);
+		if (this.jProgressBar != null && !bookInfo.imageOnly) this.jProgressBar.setProgress(bookInfo.totalLineNum/10);
 
 		//フォントファイル格納
 		if (!bookInfo.imageOnly) {
@@ -815,7 +822,7 @@ public class Epub3Writer
 					bais.close();
 				}
 				imageInfos.remove(0);//カバー画像は出力済みなので削除
-				if (this.jProgressBar != null) this.jProgressBar.setValue(this.jProgressBar.getValue()+10);
+				if (this.jProgressBar != null) this.jProgressBar.setProgress(this.jProgressBar.getProgress()+10);
 			} catch (Exception e) {
 				e.printStackTrace();
 				LogAppender.error("表紙画像取得エラー: "+bookInfo.coverFileName);
@@ -846,7 +853,7 @@ public class Epub3Writer
 					}
 				}
 				if (this.canceled) return;
-				if (this.jProgressBar != null) this.jProgressBar.setValue(this.jProgressBar.getValue()+10);
+				if (this.jProgressBar != null) this.jProgressBar.setProgress(this.jProgressBar.getProgress()+10);
 			}
 		} else if (!bookInfo.imageOnly) {
 			if ("rar".equals(srcExt)) {
@@ -884,7 +891,7 @@ public class Epub3Writer
 		}
 
 		//エラーがなければ100%
-		if (this.jProgressBar != null) this.jProgressBar.setValue(this.jProgressBar.getMaximum());
+		if (this.jProgressBar != null) this.jProgressBar.setProgress(this.jProgressBar.getMax());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -933,33 +940,33 @@ public class Epub3Writer
 				zos.closeArchiveEntry();
 			}
 			if (this.canceled) return;
-			if (this.jProgressBar != null) this.jProgressBar.setValue(this.jProgressBar.getValue()+10);
+			if (this.jProgressBar != null) this.jProgressBar.setProgress(this.jProgressBar.getProgress()+10);
 		}
 	}
 
 	/** 表紙画像を出力 編集済の画像なのでリサイズしない */
-	void writeCoverImage(BufferedImage srcImage, ZipArchiveOutputStream zos, ImageInfo imageInfo) {
+	void writeCoverImage(Bitmap srcImage, ZipArchiveOutputStream zos, ImageInfo imageInfo) {
 		imageInfo.rotateAngle = 0; //回転させない
-		ImageUtils.writeImage(null, srcImage, zos,imageInfo, this.jpegQuality, this.gammaOp,
+		ImageUtils.writeImage(null, srcImage, zos,imageInfo, this.jpegQuality, this.gammaMatrix,
 				0, 0, 0, this.dispW, this.dispH,
 				0, 0, 0, 0, 0, 0);
 	}
 	/** 表紙画像を出力 */
 	void writeCoverImage(InputStream is, ZipArchiveOutputStream zos, ImageInfo imageInfo) {
 		imageInfo.rotateAngle = 0; //回転させない
-		ImageUtils.writeImage(is, null, zos,imageInfo, this.jpegQuality, this.gammaOp,
+		ImageUtils.writeImage(is, null, zos,imageInfo, this.jpegQuality, this.gammaMatrix,
 				0, this.coverW, this.coverH, this.dispW, this.dispH,
 				0, 0, 0, 0, 0, 0);
 	}
 	/** 画像を出力 */
 	void writeImage(InputStream is,ZipArchiveOutputStream zos, ImageInfo imageInfo) {
-		ImageUtils.writeImage(is, null, zos, imageInfo, this.jpegQuality, this.gammaOp,
+		ImageUtils.writeImage(is, null, zos, imageInfo, this.jpegQuality, this.gammaMatrix,
 				this.maxImagePixels, this.maxImageW, this.maxImageH, this.dispW, this.dispH,
 				this.autoMarginLimitH, this.autoMarginLimitV, this.autoMarginWhiteLevel, this.autoMarginPadding, this.autoMarginNombre, this.autoMarginNombreSize);
 	}
 	/** 画像を出力 */
-	void writeImage(BufferedImage srcImage, ZipArchiveOutputStream zos, ImageInfo imageInfo) {
-		ImageUtils.writeImage(null, srcImage, zos, imageInfo, this.jpegQuality, this.gammaOp,
+	void writeImage(Bitmap srcImage, ZipArchiveOutputStream zos, ImageInfo imageInfo) {
+		ImageUtils.writeImage(null, srcImage, zos, imageInfo, this.jpegQuality, this.gammaMatrix,
 				this.maxImagePixels, this.maxImageW, this.maxImageH, this.dispW, this.dispH,
 				this.autoMarginLimitH,  this.autoMarginLimitV, this.autoMarginWhiteLevel, this.autoMarginPadding, this.autoMarginNombre, this.autoMarginNombreSize);
 	}
