@@ -1,5 +1,6 @@
 package io.github.kyukyunyorituryo.aozoraepub3.writer;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.ColorMatrix;
 import android.widget.ProgressBar;
@@ -15,8 +16,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -132,6 +135,8 @@ public class Epub3Writer
 			OPS_PATH+CSS_PATH+"style-standard.css",
 			OPS_PATH+CSS_PATH+"style-advance.css",
 		};
+
+
 
 	String[] getTemplateFiles()
 	{
@@ -262,6 +267,7 @@ public class Epub3Writer
 
 	/** テンプレートパス */
 	String templatePath;
+	Context context;
 
 	/** 出力中の書籍情報 */
 	BookInfo bookInfo;
@@ -280,6 +286,18 @@ public class Epub3Writer
 	public Epub3Writer(String templatePath)
 	{
 		this.templatePath = templatePath;
+		//初回実行時のみ有効
+		Velocity.init();
+		this.sectionInfos = new Vector<SectionInfo>();
+		this.chapterInfos = new Vector<ChapterInfo>();
+		this.vecGaijiInfo = new Vector<GaijiInfo>();
+		this.gaijiNameSet = new HashSet<String>();
+		this.imageInfos = new Vector<ImageInfo>();
+		this.outImageFileNames = new HashSet<String>();
+	}
+	public Epub3Writer(Context context) {
+		//this.templatePath = templatePath;
+		this.context=context;
 		//初回実行時のみ有効
 		Velocity.init();
 		this.sectionInfos = new Vector<SectionInfo>();
@@ -509,7 +527,9 @@ public class Epub3Writer
 		if (!bookInfo.imageOnly) {
 			zos.putArchiveEntry(new ZipArchiveEntry(OPS_PATH+CSS_PATH+TEXT_CSS));
 			bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
-			Velocity.mergeTemplate(templatePath+OPS_PATH+CSS_PATH+TEXT_CSS_VM, "UTF-8", velocityContext, bw);
+			//Velocity.mergeTemplate(templatePath+OPS_PATH+CSS_PATH+TEXT_CSS_VM, "UTF-8", velocityContext, bw);
+			String template = inputStreemToString(context.getAssets().open(templatePath+OPS_PATH+CSS_PATH+TEXT_CSS_VM), StandardCharsets.UTF_8);
+			Velocity.evaluate(velocityContext, bw, null, template);
 			bw.flush();
 			zos.closeArchiveEntry();
 		}
@@ -541,7 +561,9 @@ public class Epub3Writer
 			//package.opf内で目次前に出力
 			zos.putArchiveEntry(new ZipArchiveEntry(OPS_PATH+XHTML_PATH+TITLE_FILE));
 			bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
-			Velocity.mergeTemplate(vmFilePath, "UTF-8", velocityContext, bw);
+			//Velocity.mergeTemplate(vmFilePath, "UTF-8", velocityContext, bw);
+			String template = inputStreemToString(context.getAssets().open(vmFilePath), StandardCharsets.UTF_8);
+			Velocity.evaluate(velocityContext, bw, null, template);
 			bw.flush();
 			zos.closeArchiveEntry();
 
@@ -670,7 +692,9 @@ public class Epub3Writer
 				this.velocityContext.put("coverImage", insertCoverInfo);
 				zos.putArchiveEntry(new ZipArchiveEntry(OPS_PATH+XHTML_PATH+COVER_FILE));
 				bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
-				Velocity.mergeTemplate(templatePath+OPS_PATH+XHTML_PATH+COVER_VM, "UTF-8", velocityContext, bw);
+				//Velocity.mergeTemplate(templatePath+OPS_PATH+XHTML_PATH+COVER_VM, "UTF-8", velocityContext, bw);
+				String template = inputStreemToString(context.getAssets().open(templatePath+OPS_PATH+XHTML_PATH+COVER_VM), StandardCharsets.UTF_8);
+				Velocity.evaluate(velocityContext, bw, null, template);
 				bw.flush();
 				zos.closeArchiveEntry();
 			} else if (bookInfo.svgCoverImage) {
@@ -692,7 +716,9 @@ public class Epub3Writer
 
 		zos.putArchiveEntry(new ZipArchiveEntry(OPS_PATH+PACKAGE_FILE));
 		bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
-		Velocity.mergeTemplate(templatePath+OPS_PATH+PACKAGE_VM, "UTF-8", velocityContext, bw);
+		//Velocity.mergeTemplate(templatePath+OPS_PATH+PACKAGE_VM, "UTF-8", velocityContext, bw);
+		String template = inputStreemToString(context.getAssets().open(templatePath+OPS_PATH+PACKAGE_VM), StandardCharsets.UTF_8);
+		Velocity.evaluate(velocityContext, bw, null, template);
 		bw.flush();
 		zos.closeArchiveEntry();
 
@@ -740,7 +766,9 @@ public class Epub3Writer
 		velocityContext.put("chapters", chapterInfos);
 		zos.putArchiveEntry(new ZipArchiveEntry(OPS_PATH+XHTML_NAV_FILE));
 		bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
-		Velocity.mergeTemplate(templatePath+OPS_PATH+XHTML_PATH+XHTML_NAV_VM, "UTF-8", velocityContext, bw);
+		//Velocity.mergeTemplate(templatePath+OPS_PATH+XHTML_PATH+XHTML_NAV_VM, "UTF-8", velocityContext, bw);
+		template = inputStreemToString(context.getAssets().open(templatePath+OPS_PATH+XHTML_PATH+XHTML_NAV_VM), StandardCharsets.UTF_8);
+		Velocity.evaluate(velocityContext, bw, null, template);
 		bw.flush();
 		zos.closeArchiveEntry();
 
@@ -748,7 +776,9 @@ public class Epub3Writer
 		velocityContext.put("chapters", chapterInfos);
 		zos.putArchiveEntry(new ZipArchiveEntry(OPS_PATH+TOC_FILE));
 		bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
-		Velocity.mergeTemplate(templatePath+OPS_PATH+TOC_VM, "UTF-8", velocityContext, bw);
+		//Velocity.mergeTemplate(templatePath+OPS_PATH+TOC_VM, "UTF-8", velocityContext, bw);
+		template = inputStreemToString(context.getAssets().open(templatePath+OPS_PATH+TOC_VM), StandardCharsets.UTF_8);
+		Velocity.evaluate(velocityContext, bw, null, template);
 		bw.flush();
 		zos.closeArchiveEntry();
 
@@ -1031,7 +1061,9 @@ public class Epub3Writer
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
 		//出力開始するセクションに対応したSectionInfoを設定
 		this.velocityContext.put("sectionInfo", sectionInfo);
-		Velocity.mergeTemplate(this.templatePath+OPS_PATH+XHTML_PATH+XHTML_HEADER_VM, "UTF-8", velocityContext, bw);
+		//Velocity.mergeTemplate(this.templatePath+OPS_PATH+XHTML_PATH+XHTML_HEADER_VM, "UTF-8", velocityContext, bw);
+		String template = inputStreemToString(context.getAssets().open(this.templatePath+OPS_PATH+XHTML_PATH+XHTML_HEADER_VM), StandardCharsets.UTF_8);
+		Velocity.evaluate(velocityContext, bw, null, template);
 		bw.flush();
 	}
 	/** セクション終了.   */
@@ -1039,7 +1071,9 @@ public class Epub3Writer
 	{
 		//フッタ出力
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
-		Velocity.mergeTemplate(this.templatePath+OPS_PATH+XHTML_PATH+XHTML_FOOTER_VM, "UTF-8", velocityContext, bw);
+		//Velocity.mergeTemplate(this.templatePath+OPS_PATH+XHTML_PATH+XHTML_FOOTER_VM, "UTF-8", velocityContext, bw);
+		String template = inputStreemToString(context.getAssets().open(this.templatePath+OPS_PATH+XHTML_PATH+XHTML_FOOTER_VM), StandardCharsets.UTF_8);
+		Velocity.evaluate(velocityContext, bw, null, template);
 		bw.flush();
 
 		this.zos.closeArchiveEntry();
@@ -1293,6 +1327,25 @@ public class Epub3Writer
 	public String getGaijiFontPath()
 	{
 		return GAIJI_PATH;
+	}
+
+
+/*
+ * 参考サイト
+ * http://d.hatena.ne.jp/gungnir_odin/20091129/1259333223
+ */
+
+	public static String inputStreemToString(InputStream in, Charset utf8) throws IOException{
+
+		BufferedReader reader =
+				new BufferedReader(new InputStreamReader(in, utf8));
+		StringBuffer buf = new StringBuffer();
+		String str;
+		while ((str = reader.readLine()) != null) {
+			buf.append(str);
+			buf.append("\n");
+		}
+		return buf.toString();
 	}
 
 }
