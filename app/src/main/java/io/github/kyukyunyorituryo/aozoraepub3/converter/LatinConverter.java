@@ -51,7 +51,7 @@ public class LatinConverter
 	}
 	
 	/** 分解表記の文字単体をUTF-8文字に変換 */
-	Character toLatinCharacter(String separated)
+    public Character toLatinCharacter(String separated)
 	{
 		return latinMap.get(separated);
 	}
