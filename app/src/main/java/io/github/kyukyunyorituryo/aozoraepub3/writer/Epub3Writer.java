@@ -296,7 +296,7 @@ public class Epub3Writer
 		this.outImageFileNames = new HashSet<String>();
 	}
 	public Epub3Writer(Context context) {
-		//this.templatePath = templatePath;
+		this.templatePath = "template/";
 		this.context=context;
 		//初回実行時のみ有効
 		Velocity.init();
