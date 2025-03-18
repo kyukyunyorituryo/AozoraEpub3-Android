@@ -165,7 +165,7 @@ public class CharUtils
 			if (0xDB40 == c && 0xDD00 <= suf && suf <= 0xDDEF) return true; //IVS e0100-e01ef
 			if (0xD87E == c && 0xDc00 <= suf && suf <= 0xDE1F) return true;
 			int code = c<<16|suf&0xFFFF;
-			if (0xD840DC00 <= code && code <= 0xD869DEDF) return true;
+			if (0xD840DC00 <= code && code <= 0xD869DEDF) {return true;}
             return 0xD869DF00 <= code && code <= 0xD86EDC1F;
 		}
 		return false;
