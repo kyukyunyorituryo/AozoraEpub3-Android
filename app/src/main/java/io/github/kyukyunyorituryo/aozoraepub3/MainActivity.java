@@ -20,7 +20,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
+import io.github.kyukyunyorituryo.aozoraepub3.converter.AozoraEpub3Converter;
+import io.github.kyukyunyorituryo.aozoraepub3.converter.AozoraGaijiConverter;
+import io.github.kyukyunyorituryo.aozoraepub3.converter.JisConverter;
+import io.github.kyukyunyorituryo.aozoraepub3.util.CharUtils;
 import io.github.kyukyunyorituryo.aozoraepub3.util.LogAppender;
+import io.github.kyukyunyorituryo.aozoraepub3.writer.Epub3Writer;
+import io.github.kyukyunyorituryo.aozoraepub3.converter.LatinConverter;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,6 +52,82 @@ public class MainActivity extends AppCompatActivity {
         LogAppender.info(42, "情報ログ", "詳細情報");
         LogAppender.warn(100, "警告ログ");
         LogAppender.error(200, "エラーログ", "エラー詳細");
+        String tst="５５"+"ＷＷ";
+        LogAppender.println(CharUtils.fullToHalf(tst)+tst);
+
+        Epub3Writer writer = new Epub3Writer("");
+        AozoraEpub3Converter converter = null;
+        try {
+            converter = new AozoraEpub3Converter(writer, this);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        String str;
+        try {
+            str = converter.convertTitleLineToEpub3(converter.convertGaijiChuki("｜ルビ※［＃米印］《るび》※［＃米印］※［＃始め二重山括弧］※［＃終わり二重山括弧］", true, true));
+            System.out.println(str);
+            String line = converter.convertGaijiChuki("外字の後のルビ※［＃（外字.tif）］《がいじ》", true, true);
+            System.out.println(line);
+
+            line = converter.convertGaijiChuki("外字の後の｜ルビ※［＃（外字.tif）］《がいじ》", true, true);
+            System.out.println(line);
+
+            line = converter.convertGaijiChuki("※［＃（外字.tif）］《がいじ》", true, true);
+            System.out.println(line);
+            line = converter.convertGaijiChuki("外字の後の｜ルビ《るび》※［＃（外字.tif）］《るび》", true, true);
+            System.out.println(line);
+
+            line = converter.convertGaijiChuki("その上方に※［＃逆三角形と三角形が向き合っている形（fig1317_26.png、横26×縦59）入る］《デアボロ》", true, true);
+            System.out.println(line);
+            converter.vertical = true;
+            StringBuilder buf;
+            buf = converter.convertRubyText("※《29※》");
+            System.out.println(buf);
+            buf = converter.convertRubyText("※※＃※》");
+            System.out.println(buf);
+
+            buf = converter.convertRubyText("｜※｜縦線《たてせん》※｜");
+            System.out.println(buf);
+            //Assert.assertEquals(buf.toString(), "<ruby>｜縦線<rt>たてせん</rt></ruby>｜");
+            buf = converter.convertRubyText("※｜縦線《たてせん》※｜");
+            System.out.println(buf);
+            //Assert.assertEquals(buf.toString(), "｜<ruby>縦線<rt>たてせん</rt></ruby>｜");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        String jarPath ="";
+
+        AozoraGaijiConverter gaijiconverter;
+        try {
+            gaijiconverter = new AozoraGaijiConverter(this);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println(gaijiconverter.codeToCharString("U+0041"));
+        System.out.println(gaijiconverter.codeToCharString("U+04E02"));
+        System.out.println(gaijiconverter.toAlterString("感嘆符三つ"));
+        JisConverter gconverter = JisConverter.getConverter();
+        System.out.println(gconverter.toCharString(0, 0, 1)); // !
+        System.out.println(gconverter.toCharString(1, 4, 87)); // か゚
+        System.out.println(gconverter.toCharString(1, 12, 90)); // null
+        System.out.println(gconverter.toCharString(1, 13, 94)); // ☞
+        System.out.println(gconverter.toCharString(1, 14, 1)); // 俱
+        System.out.println(gconverter.toCharString(1, 16, 1)); // 亜
+        System.out.println(gconverter.toCharString(2, 94, 64)); // 䵷
+        System.out.println(gconverter.toCharString(2, 94, 86)); // 𪚲
+        System.out.println(gconverter.toCharString(1, 90, 16)); // 縈 1-90-16
+        System.out.println(gconverter.toCharString(2, 94, 85));
+        LatinConverter latinConverter = null;
+        try {
+            latinConverter = new LatinConverter(this);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println(latinConverter.toLatinCharacter("A&") );
+        System.out.println(latinConverter.toLatinCharacter("A`") );
+        System.out.println(latinConverter.toLatinCharacter("A\'") );
+
         Button buttonOpen = findViewById(R.id.button_open);
         Button buttonProcess = findViewById(R.id.button_process);
         Button buttonSave = findViewById(R.id.button_save);
