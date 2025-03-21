@@ -494,12 +494,11 @@ public class Epub3Writer
 		//mimetypeは非圧縮
 		//STOREDで格納しCRCとsizeを指定する必要がある
 		ZipArchiveEntry mimeTypeEntry = new ZipArchiveEntry(MIMETYPE_PATH);
-		String mime = inputStreemToString(context.getAssets().open(templatePath+MIMETYPE_PATH), StandardCharsets.UTF_8);
-		//FileInputStream fis = (FileInputStream) context.getAssets().open(templatePath+MIMETYPE_PATH);
+		InputStream mime = context.getAssets().open(templatePath+MIMETYPE_PATH);
 		FileInputStream fis;
 		// "application/epub+zip" をバイト配列に変換
-		byte[] b = mime.getBytes(StandardCharsets.UTF_8);
-		int len = b.length;  // バイト配列の長さを取得
+		byte[] b = new byte[256];
+		int len = mime.read(b);
 		//fis.close();
 		CRC32 crc32 = new CRC32();
 		crc32.update(b, 0, len);
