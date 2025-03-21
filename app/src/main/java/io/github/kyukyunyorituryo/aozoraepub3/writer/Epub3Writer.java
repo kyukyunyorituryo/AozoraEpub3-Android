@@ -398,16 +398,21 @@ public class Epub3Writer
 	{
 		zos.putArchiveEntry(new ZipArchiveEntry(fileName));
 		//customファイル優先
+		//カスタム機能のなくす
+		/*
 		File file = new File(templatePath+fileName);
 		int idx = fileName.lastIndexOf('/');
 		if (idx > 0) {
 			File customFile = new File(templatePath+fileName.substring(0, idx)+"_custom/"+fileName.substring(idx+1));
 			if (customFile.exists()) file = customFile;
 		}
-		FileInputStream fis = new FileInputStream(file);
-		IOUtils.copy(fis, zos);
+
+		 */
+		InputStream is = context.getAssets().open(templatePath+fileName);
+		//FileInputStream fis = new FileInputStream(file);
+		IOUtils.copy(is, zos);
 		//fis.transferTo(zos);
-		fis.close();
+		is.close();
 		zos.closeArchiveEntry();
 	}
 
