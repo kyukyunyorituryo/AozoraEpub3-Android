@@ -537,7 +537,7 @@ public class Epub3Writer
 			bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
 			//Velocity.mergeTemplate(templatePath+OPS_PATH+CSS_PATH+TEXT_CSS_VM, "UTF-8", velocityContext, bw);
 			String template = inputStreemToString(context.getAssets().open(templatePath+OPS_PATH+CSS_PATH+TEXT_CSS_VM), StandardCharsets.UTF_8);
-			Velocity.evaluate(velocityContext, bw, null, template);
+			Velocity.evaluate(velocityContext, bw, "TEXT_CSS_VM", template);
 			bw.flush();
 			zos.closeArchiveEntry();
 		}
@@ -571,7 +571,7 @@ public class Epub3Writer
 			bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
 			//Velocity.mergeTemplate(vmFilePath, "UTF-8", velocityContext, bw);
 			String template = inputStreemToString(context.getAssets().open(vmFilePath), StandardCharsets.UTF_8);
-			Velocity.evaluate(velocityContext, bw, null, template);
+			Velocity.evaluate(velocityContext, bw, "TITLE_FILE", template);
 			bw.flush();
 			zos.closeArchiveEntry();
 
@@ -702,7 +702,7 @@ public class Epub3Writer
 				bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
 				//Velocity.mergeTemplate(templatePath+OPS_PATH+XHTML_PATH+COVER_VM, "UTF-8", velocityContext, bw);
 				String template = inputStreemToString(context.getAssets().open(templatePath+OPS_PATH+XHTML_PATH+COVER_VM), StandardCharsets.UTF_8);
-				Velocity.evaluate(velocityContext, bw, null, template);
+				Velocity.evaluate(velocityContext, bw, "COVER_VM", template);
 				bw.flush();
 				zos.closeArchiveEntry();
 			} else if (bookInfo.svgCoverImage) {
@@ -726,7 +726,7 @@ public class Epub3Writer
 		bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
 		//Velocity.mergeTemplate(templatePath+OPS_PATH+PACKAGE_VM, "UTF-8", velocityContext, bw);
 		String template = inputStreemToString(context.getAssets().open(templatePath+OPS_PATH+PACKAGE_VM), StandardCharsets.UTF_8);
-		Velocity.evaluate(velocityContext, bw, null, template);
+		Velocity.evaluate(velocityContext, bw, "PACKAGE_VM", template);
 		bw.flush();
 		zos.closeArchiveEntry();
 
@@ -776,7 +776,7 @@ public class Epub3Writer
 		bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
 		//Velocity.mergeTemplate(templatePath+OPS_PATH+XHTML_PATH+XHTML_NAV_VM, "UTF-8", velocityContext, bw);
 		template = inputStreemToString(context.getAssets().open(templatePath+OPS_PATH+XHTML_PATH+XHTML_NAV_VM), StandardCharsets.UTF_8);
-		Velocity.evaluate(velocityContext, bw, null, template);
+		Velocity.evaluate(velocityContext, bw, "NAV_VM", template);
 		bw.flush();
 		zos.closeArchiveEntry();
 
@@ -786,7 +786,7 @@ public class Epub3Writer
 		bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
 		//Velocity.mergeTemplate(templatePath+OPS_PATH+TOC_VM, "UTF-8", velocityContext, bw);
 		template = inputStreemToString(context.getAssets().open(templatePath+OPS_PATH+TOC_VM), StandardCharsets.UTF_8);
-		Velocity.evaluate(velocityContext, bw, null, template);
+		Velocity.evaluate(velocityContext, bw, "TOC_VM", template);
 		bw.flush();
 		zos.closeArchiveEntry();
 
@@ -1071,7 +1071,7 @@ public class Epub3Writer
 		this.velocityContext.put("sectionInfo", sectionInfo);
 		//Velocity.mergeTemplate(this.templatePath+OPS_PATH+XHTML_PATH+XHTML_HEADER_VM, "UTF-8", velocityContext, bw);
 		String template = inputStreemToString(context.getAssets().open(this.templatePath+OPS_PATH+XHTML_PATH+XHTML_HEADER_VM), StandardCharsets.UTF_8);
-		Velocity.evaluate(velocityContext, bw, null, template);
+		Velocity.evaluate(velocityContext, bw, "HEADER_VM", template);
 		bw.flush();
 	}
 	/** セクション終了.   */
@@ -1081,7 +1081,7 @@ public class Epub3Writer
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
 		//Velocity.mergeTemplate(this.templatePath+OPS_PATH+XHTML_PATH+XHTML_FOOTER_VM, "UTF-8", velocityContext, bw);
 		String template = inputStreemToString(context.getAssets().open(this.templatePath+OPS_PATH+XHTML_PATH+XHTML_FOOTER_VM), StandardCharsets.UTF_8);
-		Velocity.evaluate(velocityContext, bw, null, template);
+		Velocity.evaluate(velocityContext, bw, "FOOTER_VM", template);
 		bw.flush();
 
 		this.zos.closeArchiveEntry();
