@@ -40,6 +40,7 @@ import io.github.kyukyunyorituryo.aozoraepub3.writer.Epub3Writer;
 public class MainActivity extends AppCompatActivity {
     private File srcFile;
     private Properties props;
+    private File outFile;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -130,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
     }
     private void processFile() {
         //File inputFile = new File(getFilesDir(), "input.txt");
-        File outputFile = new File(getFilesDir(), "output.txt");
+        //File outputFile = new File(getFilesDir(), "output.txt");
 
         if (!srcFile.exists() || srcFile.length() == 0) {
             Toast.makeText(this, "入力ファイルが存在しないか空です", Toast.LENGTH_SHORT).show();
@@ -439,7 +440,7 @@ public class MainActivity extends AppCompatActivity {
                         if(bookInfo.creator == null || bookInfo.creator.length() == 0) bookInfo.creator = titleCreator[1] == null ? "" : titleCreator[1];
                     }
                 }
-                File outFile = AozoraEpub3.getOutFile(srcFile, dstPath, bookInfo, autoFileName, outExt);
+                outFile = AozoraEpub3.getOutFile(srcFile, dstPath, bookInfo, autoFileName, outExt);
                 AozoraEpub3.convertFile(srcFile, ext, outFile, aozoraConverter, writer, encType, bookInfo, imageInfoReader, txtIdx);
             }
         }
@@ -471,22 +472,21 @@ public class MainActivity extends AppCompatActivity {
     private void openFileSaver() {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("text/plain");
-        intent.putExtra(Intent.EXTRA_TITLE, "output.txt");
+        intent.setType("application/epub+zip");
+        intent.putExtra(Intent.EXTRA_TITLE, outFile.getName());
         saveFileLauncher.launch(intent);
     }
 
     // 🔹 内部ストレージのファイルを SAF で保存
     private void saveFileToUri(Uri uri) {
-        File internalFile = new File(getFilesDir(), "output.txt");
 
-        if (!internalFile.exists() || internalFile.length() == 0) {
+        if (!outFile.exists() || outFile.length() == 0) {
             Toast.makeText(this, "出力ファイルが空のため保存できません", Toast.LENGTH_SHORT).show();
             return;
         }
 
         try {
-            Files.copy(internalFile.toPath(), getContentResolver().openOutputStream(uri));
+            Files.copy(outFile.toPath(), getContentResolver().openOutputStream(uri));
             Toast.makeText(this, "ファイルを保存しました", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
