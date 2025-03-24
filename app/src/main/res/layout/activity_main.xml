@@ -1,57 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity">
-
-    <TextView
-        android:id="@+id/textViewLog"
-        android:layout_width="wrap_content"
+    <!-- 表紙画像ファイルの読み込みボタン -->
+    <Button
+        android:id="@+id/loadCoverButton"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="300dp"
-        android:textSize="16sp"
-        android:text="ログ出力エリア\n"
-        android:background="#EEEEEE"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
+        android:text="表紙画像を読み込む" />
+    <!-- 挿絵ファイルの読み込みボタン -->
+    <Button
+        android:id="@+id/loadIllustrationButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="挿絵を読み込む" />
     <Button
         android:id="@+id/button_open"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="40dp"
-        android:layout_marginTop="52dp"
-        android:text="ファイルを選択 (SAF)"
-        app:layout_constraintBottom_toTopOf="@+id/button_process"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.014" />
-
+        android:text="ファイルを選択 (SAF)" />
+    <!-- 設定を開くボタン -->
+    <Button
+        android:id="@+id/openSettingsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="設定を開く" />
     <Button
         android:id="@+id/button_process"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="128dp"
-        android:text="ファイルを処理"
-        app:layout_constraintBottom_toTopOf="@+id/textViewLog"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.462"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:text="ファイルを処理" />
 
     <Button
         android:id="@+id/button_save"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="72dp"
-        android:text="保存 (SAF)"
-        app:layout_constraintBottom_toTopOf="@+id/button_process"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.264"
-        app:layout_constraintStart_toEndOf="@+id/button_open"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:text="保存 (SAF)" />
+    <TextView
+        android:id="@+id/textViewLog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#EEEEEE"
+        android:text="ログ出力エリア\n"
+        android:textSize="16sp"
+        android:scrollbars="vertical"/>
+</LinearLayout>
