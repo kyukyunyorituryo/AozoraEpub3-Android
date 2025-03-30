@@ -9,13 +9,13 @@
     tools:context=".MainActivity">
     <!-- 表紙画像ファイルの読み込みボタン -->
     <Button
-        android:id="@+id/loadCoverButton"
+        android:id="@+id/coverButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="表紙画像を読み込む" />
     <!-- 挿絵ファイルの読み込みボタン -->
     <Button
-        android:id="@+id/loadIllustrationButton"
+        android:id="@+id/figureButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="挿絵を読み込む" />

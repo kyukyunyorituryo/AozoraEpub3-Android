@@ -1,11 +1,13 @@
 package io.github.kyukyunyorituryo.aozoraepub3;
 
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.method.ScrollingMovementMethod;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +27,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -54,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
         });
         // ログを表示するTextViewを取得
         TextView logTextView = findViewById(R.id.textViewLog);
+        logTextView.setMovementMethod(new ScrollingMovementMethod());
 
         // LogAppenderにTextViewをセット
         LogAppender.setTextView(logTextView);
@@ -73,20 +78,61 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        Button buttonCover = findViewById(R.id.coverButton);
+        Button buttonFigure = findViewById(R.id.figureButton);
         Button buttonOpen = findViewById(R.id.button_open);
         Button buttonProcess = findViewById(R.id.button_process);
         Button buttonSave = findViewById(R.id.button_save);
 
+        buttonCover.setOnClickListener(v ->coverFilePicker());
+        buttonFigure.setOnClickListener( v -> figureFilePicker());
         buttonOpen.setOnClickListener(v -> openFilePicker());
         buttonProcess.setOnClickListener(v -> processFile());
         buttonSave.setOnClickListener(v -> openFileSaver());
     }
-    // 🔹 ファイル選択 UI を開く (SAF)
+
+    private void figureFilePicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        String[] mimeTypes ={
+                "image/jpeg",
+                "image/png"};
+        intent.setType("*/*").putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        filePickerLauncher.launch(intent);
+    }
+
+    private void coverFilePicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        String[] mimeTypes ={
+                "image/jpeg",
+                "image/png"};
+        intent.setType("*/*").putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+        filePickerLauncher.launch(intent);
+    }
+
+    // 🔹 ファイル選択 UI を開く (SAF) - 複数ファイル対応
     private final ActivityResultLauncher<Intent> filePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Uri uri = result.getData().getData();
-                    if (uri != null) {
+                    Intent data = result.getData();
+                    List<Uri> uriList = new ArrayList<>();
+
+                    // 複数ファイル選択
+                    if (data.getClipData() != null) {
+                        ClipData clipData = data.getClipData();
+                        for (int i = 0; i < clipData.getItemCount(); i++) {
+                            uriList.add(clipData.getItemAt(i).getUri());
+                        }
+                    }
+                    // 単一ファイル選択
+                    else if (data.getData() != null) {
+                        uriList.add(data.getData());
+                    }
+
+                    // 選択されたすべてのファイルを処理
+                    for (Uri uri : uriList) {
                         copyFileToInternalStorage(uri);
                     }
                 }
@@ -104,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
 
     // 🔹 選択したファイルを内部ストレージにコピー
     private void copyFileToInternalStorage(Uri uri) {
-
+        File src = null;
         String[] projection = {MediaStore.MediaColumns.DISPLAY_NAME};
         String path = null;
         Cursor cursor = this.getContentResolver().query(uri, projection, null, null, null);
@@ -115,15 +161,18 @@ public class MainActivity extends AppCompatActivity {
             }
             cursor.close();
             Context context = getApplicationContext();
-            srcFile = new File(context.getFilesDir(), path);
+            src = new File(context.getFilesDir(), path);
 
             System.out.println("filename:" + path);
-            System.out.println("filename:" + srcFile.getPath());
+            System.out.println("filename:" + src.getPath());
         }
 
         try {
-            Files.copy(getContentResolver().openInputStream(uri), srcFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(getContentResolver().openInputStream(uri), src.toPath(), StandardCopyOption.REPLACE_EXISTING);
             Toast.makeText(this, "ファイルを内部ストレージにコピーしました", Toast.LENGTH_SHORT).show();
+            if (path.endsWith(".txt") || path.endsWith(".zip")) {
+               srcFile= src;
+            }
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(this, "コピーに失敗しました", Toast.LENGTH_SHORT).show();
@@ -325,6 +374,7 @@ public class MainActivity extends AppCompatActivity {
         if(srcFile == null || !srcFile.isFile()) {
             LogAppender.error("file not exist. " + srcFile.getAbsolutePath());
             //    continue;
+            return;
         }
         String ext = srcFile.getName();
         ext = ext.substring(ext.lastIndexOf('.') + 1).toLowerCase();
