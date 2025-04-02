@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.method.ScrollingMovementMethod;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,7 +22,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
+import android.content.SharedPreferences;
+import androidx.preference.PreferenceManager;
 import com.github.junrar.exception.RarException;
 
 import java.io.File;
@@ -71,6 +73,19 @@ public class MainActivity extends AppCompatActivity {
         LogAppender.warn(100, "警告ログ");
         LogAppender.error(200, "エラーログ", "エラー詳細");
 
+        // 設定値を取得する例
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String selectedTitleType = prefs.getString("TitleType","0");
+        boolean autoFileName = prefs.getBoolean("AutoFileName", true);
+        String dstPath = prefs.getString("DstPath", "C:\\Users\\Owner\\Downloads");
+        int fontSize = prefs.getInt("FontSize", 100);
+
+        LogAppender.println("設定値の取得");
+        LogAppender.println(selectedTitleType);
+        LogAppender.println(String.valueOf(autoFileName));
+        LogAppender.println(dstPath);
+        LogAppender.println(String.valueOf(fontSize));
+
         //プロパティーの読み込み
         props = new Properties();
         try {
@@ -85,12 +100,20 @@ public class MainActivity extends AppCompatActivity {
         Button buttonOpen = findViewById(R.id.button_open);
         Button buttonProcess = findViewById(R.id.button_process);
         Button buttonSave = findViewById(R.id.button_save);
+        Button buttonSetting =findViewById(R.id.openSettingsButton);
 
         buttonCover.setOnClickListener(v ->coverFilePicker());
         buttonFigure.setOnClickListener( v -> figureFilePicker());
         buttonOpen.setOnClickListener(v -> openFilePicker());
         buttonProcess.setOnClickListener(v -> processFile());
         buttonSave.setOnClickListener(v -> openFileSaver());
+        buttonSetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private void figureFilePicker() {

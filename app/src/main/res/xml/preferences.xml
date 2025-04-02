@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ListPreference
+        app:key="TitleType"
+        app:title="表題：本文内"
+        app:dialogTitle="タイトルタイプを選択"
+        app:entries="@array/title_type_names"
+        app:entryValues="@array/title_type_values"
+        app:defaultValue="0" />
+    <!-- 先頭が発行者 -->
+    <SwitchPreferenceCompat
+        app:key="PubFirst"
+        app:title="先頭が発行者"
+        app:defaultValue="false" />
+    <!-- ファイル名優先 -->
+    <SwitchPreferenceCompat
+        app:key="UseFileName"
+        app:title="ファイル名優先"
+        app:defaultValue="false" />
+
+    <EditTextPreference
+        app:key="Cover"
+        app:title="表紙"
+        app:dialogTitle="表紙のパスを入力"
+        app:defaultValue="" />
+
+    <SwitchPreferenceCompat
+        app:key="CoverHistory"
+        app:title="表紙履歴を有効化"
+        app:defaultValue="false" />
+
+    <SeekBarPreference
+        app:key="JpegQuality"
+        app:title="JPEG品質"
+        app:min="0"
+        android:max="100"
+        app:defaultValue="75" />
+
+    <EditTextPreference
+        app:key="WebInterval"
+        app:title="Web更新間隔（秒）"
+        app:min="1"
+        app:defaultValue="1" />
+
+    <EditTextPreference
+        app:key="UserAgent"
+        app:title="User-Agent"
+        app:dialogTitle="User-Agent を入力"
+        app:defaultValue="" />
+
+    <SwitchPreferenceCompat
+        app:key="WebConvertUpdated"
+        app:title="Webの更新を変換"
+        app:defaultValue="false" />
+
+</PreferenceScreen>

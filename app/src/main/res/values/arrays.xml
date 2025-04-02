@@ -1,0 +1,20 @@
+<resources>
+    <string-array name="title_type_names">
+        <item>表題 → 著者名</item>
+        <item>著者名 → 表題</item>
+        <item>表題 → 著者名(副題優先)</item>
+        <item>表題のみ(1行)</item>
+        <item>表題+著者のみ(2行)</item>
+        <item>なし</item>
+    </string-array>
+
+    <string-array name="title_type_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
+</resources>
+
