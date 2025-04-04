@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.method.ScrollingMovementMethod;
@@ -26,7 +27,10 @@ import android.content.SharedPreferences;
 import androidx.preference.PreferenceManager;
 import com.github.junrar.exception.RarException;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -35,7 +39,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
-
+import java.net.URI;
+import java.net.URL;
 
 import io.github.kyukyunyorituryo.aozoraepub3.converter.AozoraEpub3Converter;
 import io.github.kyukyunyorituryo.aozoraepub3.image.ImageInfoReader;
@@ -44,7 +49,7 @@ import io.github.kyukyunyorituryo.aozoraepub3.info.SectionInfo;
 import io.github.kyukyunyorituryo.aozoraepub3.util.LogAppender;
 import io.github.kyukyunyorituryo.aozoraepub3.writer.Epub3ImageWriter;
 import io.github.kyukyunyorituryo.aozoraepub3.writer.Epub3Writer;
-
+import io.github.kyukyunyorituryo.aozoraepub3.web.WebAozoraConverter;
 public class MainActivity extends AppCompatActivity {
     private File srcFile;
     private Properties props;
@@ -77,14 +82,10 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String selectedTitleType = prefs.getString("TitleType","0");
         boolean autoFileName = prefs.getBoolean("AutoFileName", true);
-        String dstPath = prefs.getString("DstPath", "C:\\Users\\Owner\\Downloads");
-        int fontSize = prefs.getInt("FontSize", 100);
 
         LogAppender.println("設定値の取得");
         LogAppender.println(selectedTitleType);
         LogAppender.println(String.valueOf(autoFileName));
-        LogAppender.println(dstPath);
-        LogAppender.println(String.valueOf(fontSize));
 
         //プロパティーの読み込み
         props = new Properties();
@@ -107,15 +108,49 @@ public class MainActivity extends AppCompatActivity {
         buttonOpen.setOnClickListener(v -> openFilePicker());
         buttonProcess.setOnClickListener(v -> processFile());
         buttonSave.setOnClickListener(v -> openFileSaver());
-        buttonSetting.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-                startActivity(intent);
-            }
+        buttonSetting.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+            startActivity(intent);
         });
+        // Intent から URL を受け取る
+        handleIntent(getIntent());
     }
+    /** Intent から URL を取得して処理 */
+    private void handleIntent(Intent intent) {
+        if (intent == null) return;
 
+        String receivedUrl = null;
+
+        // 共有 (SEND) インテントからの取得
+        if (Intent.ACTION_SEND.equals(intent.getAction()) && "text/plain".equals(intent.getType())) {
+            receivedUrl = intent.getStringExtra(Intent.EXTRA_TEXT);
+        }
+
+        // リンクを開く (VIEW) インテントからの取得
+        if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+            Uri data = intent.getData();
+            if (data != null) {
+                receivedUrl = data.toString();
+            }
+        }
+
+        // URL が取得できた場合、変換処理を実行
+        if (receivedUrl != null && !receivedUrl.isEmpty()) {
+            LogAppender.println("受け取ったURL: " + receivedUrl);
+
+            // URLリストに追加
+            List<String> urlList = new ArrayList<>();
+            urlList.add(receivedUrl);
+
+            // 出力先フォルダ（キャッシュフォルダを使用）
+            File dstPath = getCacheDir();
+
+            // 変換処理を実行
+            convertWeb(urlList, new ArrayList<>(), dstPath);
+        } else {
+            LogAppender.println("URLが空または無効です");
+        }
+    }
     private void figureFilePicker() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -592,4 +627,108 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /** Web変換 */
+    private void convertWeb(List<String> urlList, List<File> shortcutFiles, File dstPath) {
+        new ConvertWebTask(this, urlList, shortcutFiles, dstPath).execute();
+    }
+
+    /** 非同期タスクでダウンロードと変換処理 */
+    private static class ConvertWebTask extends AsyncTask<Void, Void, Void> {
+        private Context context;
+        private List<String> urlList;
+        private List<File> shortcutFiles;
+        private File dstPath;
+
+        public ConvertWebTask(Context context, List<String> urlList, List<File> shortcutFiles, File dstPath) {
+            this.context = context;
+            this.urlList = urlList;
+            this.shortcutFiles = shortcutFiles;
+            this.dstPath = dstPath;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                for (int i = 0; i < urlList.size(); i++) {
+                    String urlString = urlList.get(i);
+                    File srcShortcutFile = (shortcutFiles != null && shortcutFiles.size() > i) ? shortcutFiles.get(i) : null;
+
+                    String ext = urlString.substring(urlString.lastIndexOf('.') + 1).toLowerCase();
+                    if (ext.equals("zip") || ext.equals("txtz") || ext.equals("rar")) {
+                        // URLのファイル名を安全な形式に
+                        String fileName = new File(new URI(urlString).getPath()).getName().replaceAll("[?*&|<>\"\\\\]", "_");
+                        File srcFile = new File(dstPath, fileName);
+
+                        LogAppender.println("出力先にダウンロードします: " + srcFile.getCanonicalPath());
+
+                        if (!srcFile.getParentFile().exists()) {
+                            srcFile.getParentFile().mkdirs();
+                        }
+
+                        // ダウンロード処理
+                        try (BufferedInputStream bis = new BufferedInputStream(new URL(urlString).openStream(), 8192);
+                             BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(srcFile))) {
+                            byte[] buffer = new byte[8192];
+                            int bytesRead;
+                            while ((bytesRead = bis.read(buffer)) != -1) {
+                                bos.write(buffer, 0, bytesRead);
+                            }
+                        }
+
+                        // 変換実行（仮のメソッド）
+                        convertFiles(new File[]{srcFile}, dstPath);
+                        continue;
+                    }
+
+                    // WebAozoraConverterの処理（仮）
+                    LogAppender.println("--------");
+                    LogAppender.append(urlString);
+                    LogAppender.println(" を読み込みます");
+
+                    WebAozoraConverter webConverter = WebAozoraConverter.createWebAozoraConverter(urlString, context);
+                    if (webConverter == null) {
+                        LogAppender.append(urlString);
+                        LogAppender.println(" は変換できませんでした");
+                        continue;
+                    }
+                    int interval = 500;
+                    String Ua="Chrome";
+                    int beforeChapter = 0;
+                    float modifiedExpire = 0;
+                    boolean WebConvertUpdated= false;
+                    boolean WebModifiedOnly =false;
+                    boolean WebModifiedTail =false;
+                    boolean WebLageImage =false;
+				    File srcFile = webConverter.convertToAozoraText(urlString, getCachePath(context), interval, modifiedExpire,
+					WebConvertUpdated, WebModifiedOnly, WebModifiedTail,
+					beforeChapter,Ua,WebLageImage);
+                   // File srcFile = webConverter.convertToAozoraText(urlString, getCachePath(context));
+                    if (srcFile == null) {
+                        LogAppender.append(urlString);
+                        LogAppender.println(" の変換をスキップまたは失敗しました");
+                        continue;
+                    }
+
+                    // 変換処理実行
+                    convertFiles(new File[]{srcFile}, dstPath);
+                }
+            } catch (Exception e) {
+                LogAppender.println("エラーが発生しました: " + e.getMessage());
+            }
+            return null;
+        }
+    }
+
+    /** キャッシュパスを取得 */
+    private static File getCachePath(Context context) {
+        return context.getCacheDir();
+    }
+
+    /** ファイルを変換するメソッド（仮） */
+    private static void convertFiles(File[] srcFiles, File dstPath) {
+        for (File file : srcFiles) {
+            LogAppender.println("変換中: " + file.getAbsolutePath());
+            // 実際の変換処理を実装
+        }
+    }
 }

@@ -1,5 +1,8 @@
 package io.github.kyukyunyorituryo.aozoraepub3.web;
 
+import android.content.Context;
+import android.content.res.AssetManager;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -8,6 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
@@ -95,16 +99,16 @@ public class WebAozoraConverter
 
 	////////////////////////////////////////////////////////////////
 	/** fqdnに対応したインスタンスを生成してキャッシュして変換実行 */
-	public static WebAozoraConverter createWebAozoraConverter(String urlString, File configPath) throws IOException
+	public static WebAozoraConverter createWebAozoraConverter(String urlString, Context context) throws IOException
 	{
 		urlString = urlString.trim();
 		String baseUri = urlString.substring(0, urlString.indexOf('/', urlString.indexOf("//")+2));
 		String fqdn = baseUri.substring(baseUri.indexOf("//")+2);
 		WebAozoraConverter converter = converters.get(fqdn);
 		if (converter == null) {
-			converter = new WebAozoraConverter(fqdn, configPath);
+			converter = new WebAozoraConverter(fqdn, context);
 			if (!converter.isValid()) {
-				LogAppender.println("サイトの定義がありません: "+configPath.getName()+"/"+fqdn);
+				LogAppender.println("サイトの定義がありません: web/"+fqdn);
 				return null;
 			}
 			converters.put(fqdn, converter);
@@ -114,62 +118,61 @@ public class WebAozoraConverter
 	}
 
 	////////////////////////////////////////////////////////////////
-	/** fqdnに対応したパラメータ取得
-	 * @throws IOException */
-	WebAozoraConverter(String fqdn, File configPath) throws IOException
-	{
-		if (configPath.isDirectory()) {
-			for (File file : Objects.requireNonNull(configPath.listFiles())) {
-				if (file.isDirectory() && file.getName().equals(fqdn)) {
+     /** fqdnに対応したパラメータ取得 */
+    WebAozoraConverter(String fqdn,Context context)  throws IOException {
+        AssetManager assetManager = context.getAssets();
 
-					//抽出情報
-					File extractInfoFile = new File(configPath.getAbsolutePath()+"/"+fqdn+"/extract.txt");
-					if (!extractInfoFile.isFile()) return;
-					this.queryMap = new HashMap<ExtractId, ExtractInfo[]>();
-					String line;
-					BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(extractInfoFile), StandardCharsets.UTF_8));
-					try {
-						while ((line = br.readLine()) != null) {
-							if (line.isEmpty() || line.charAt(0) == '#') continue;
-							String[] values = line.split("\t", -1);
-							if (values.length > 1) {
-								ExtractId extractId = ExtractId.valueOf(values[0]);
-								String[] queryStrings = values[1].split(",");
-								Pattern pattern = values.length > 2 ? Pattern.compile(values[2]) : null; //ExtractInfoが複数でも同じ値を設定
-								String replaceValue = values.length > 3 ? values[3] : null; //ExtractInfoが複数でも同じ値を設定
-								ExtractInfo[] extractInfos = new ExtractInfo[queryStrings.length];
-								for (int i=0; i<queryStrings.length; i++) extractInfos[i] = new ExtractInfo(queryStrings[i], pattern, replaceValue);
-								this.queryMap.put(extractId, extractInfos);
-							}
-						}
-					} finally{
-						br.close();
-					}
+        // assets/fqdn/extract.txt の読み込み
+        String extractFilePath = "web/" + fqdn + "/extract.txt";
+        if (!fileExists(assetManager, extractFilePath)) return;
 
-					//置換情報
-					this.replaceMap = new HashMap<ExtractId, Vector<String[]>>();
-					File replaceInfoFile = new File(configPath.getAbsolutePath()+"/"+fqdn+"/replace.txt");
-					if (replaceInfoFile.isFile()) {
-						br = new BufferedReader(new InputStreamReader(new FileInputStream(replaceInfoFile), StandardCharsets.UTF_8));
-						try {
-							while ((line = br.readLine()) != null) {
-								if (line.isEmpty() || line.charAt(0) == '#') continue;
-								String[] values = line.split("\t");
-								if (values.length > 1) {
-									ExtractId extractId = ExtractId.valueOf(values[0]);
-                                    Vector<String[]> vecReplace = this.replaceMap.computeIfAbsent(extractId, k -> new Vector<String[]>());
-                                    vecReplace.add(new String[]{values[1], values.length==2?"":values[2]});
-								}
-							}
-						} finally{
-							br.close();
-						}
-					}
-					return;
-				}
-			}
-		}
-	}
+        this.queryMap = new HashMap<>();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(assetManager.open(extractFilePath), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.isEmpty() || line.charAt(0) == '#') continue;
+                String[] values = line.split("\t", -1);
+                if (values.length > 1) {
+                    ExtractId extractId = ExtractId.valueOf(values[0]);
+                    String[] queryStrings = values[1].split(",");
+                    Pattern pattern = values.length > 2 ? Pattern.compile(values[2]) : null;
+                    String replaceValue = values.length > 3 ? values[3] : null;
+                    ExtractInfo[] extractInfos = new ExtractInfo[queryStrings.length];
+                    for (int i = 0; i < queryStrings.length; i++) {
+                        extractInfos[i] = new ExtractInfo(queryStrings[i], pattern, replaceValue);
+                    }
+                    this.queryMap.put(extractId, extractInfos);
+                }
+            }
+        }
+
+        // assets/fqdn/replace.txt の読み込み
+        String replaceFilePath = "web/" + fqdn + "/replace.txt";
+        if (!fileExists(assetManager, replaceFilePath)) return;
+
+        this.replaceMap = new HashMap<>();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(assetManager.open(replaceFilePath), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.isEmpty() || line.charAt(0) == '#') continue;
+                String[] values = line.split("\t");
+                if (values.length > 1) {
+                    ExtractId extractId = ExtractId.valueOf(values[0]);
+                    Vector<String[]> vecReplace = this.replaceMap.computeIfAbsent(extractId, k -> new Vector<>());
+                    vecReplace.add(new String[]{values[1], values.length == 2 ? "" : values[2]});
+                }
+            }
+        }
+    }
+
+    /** assets 内のファイルが存在するかを確認するヘルパーメソッド */
+    private boolean fileExists(AssetManager assetManager, String path) {
+        try (InputStream is = assetManager.open(path)) {
+            return is != null;
+        } catch (IOException e) {
+            return false;
+        }
+    }
 
 	////////////////////////////////////////////////////////////////
 	private boolean isValid()
