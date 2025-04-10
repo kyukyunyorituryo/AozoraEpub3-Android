@@ -2,57 +2,854 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <ListPreference
-        app:key="TitleType"
-        app:title="表題：本文内"
-        app:dialogTitle="タイトルタイプを選択"
-        app:entries="@array/title_type_names"
-        app:entryValues="@array/title_type_values"
-        app:defaultValue="0" />
-    <!-- 先頭が発行者 -->
-    <SwitchPreferenceCompat
-        app:key="PubFirst"
-        app:title="先頭が発行者"
-        app:defaultValue="false" />
-    <!-- ファイル名優先 -->
-    <SwitchPreferenceCompat
-        app:key="UseFileName"
-        app:title="ファイル名優先"
-        app:defaultValue="false" />
+    <!-- 表題 -->
+    <PreferenceCategory app:title="表題">
+        <ListPreference
+            app:key="title_type"
+            app:title="表題の種類"
+            app:entries="@array/title_type_names"
+            app:entryValues="@array/title_type_values"
+            android:defaultValue="0" />
 
-    <EditTextPreference
-        app:key="Cover"
-        app:title="表紙"
-        app:dialogTitle="表紙のパスを入力"
-        app:defaultValue="" />
+        <CheckBoxPreference
+            app:key="pub_first"
+            app:title="先頭が発行者"
+            android:defaultValue="false" />
 
-    <SwitchPreferenceCompat
-        app:key="CoverHistory"
-        app:title="表紙履歴を有効化"
-        app:defaultValue="false" />
+        <CheckBoxPreference
+            app:key="use_filename"
+            app:title="ファイル名優先"
+            android:defaultValue="false" />
+    </PreferenceCategory>
 
-    <SeekBarPreference
-        app:key="JpegQuality"
-        app:title="JPEG品質"
-        app:min="0"
-        android:max="100"
-        app:defaultValue="75" />
+    <!-- 表紙 -->
+    <PreferenceCategory app:title="表紙">
+        <EditTextPreference
+            app:key="max_cover_lines"
+            app:title="最大行数"
+            app:dialogTitle="画像注記の取得最大行数"
+            android:defaultValue="10"
+            android:inputType="number" />
 
-    <EditTextPreference
-        app:key="WebInterval"
-        app:title="Web更新間隔（秒）"
-        app:min="1"
-        app:defaultValue="1" />
+        <ListPreference
+            app:key="cover_mode"
+            app:title="表紙設定"
+            app:entries="@array/cover_options"
+            app:entryValues="@array/cover_options_values"
+            android:defaultValue="0" />
 
-    <EditTextPreference
-        app:key="UserAgent"
-        app:title="User-Agent"
-        app:dialogTitle="User-Agent を入力"
-        app:defaultValue="" />
+        <CheckBoxPreference
+            app:key="use_cover_history"
+            app:title="表紙履歴利用"
+            android:defaultValue="true"
+            app:summary="前回の表紙を利用。履歴は再起動で初期化されます。" />
+    </PreferenceCategory>
 
-    <SwitchPreferenceCompat
-        app:key="WebConvertUpdated"
-        app:title="Webの更新を変換"
-        app:defaultValue="false" />
+    <!-- ページ出力 -->
+    <PreferenceCategory app:title="ページ出力">
+        <CheckBoxPreference
+            app:key="output_cover_page"
+            app:title="表紙画像を出力"
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            app:key="output_title_page"
+            app:title="表題ページを出力"
+            android:defaultValue="true" />
+
+        <ListPreference
+            app:key="title_page_style"
+            app:title="表題ページスタイル"
+            app:entries="@array/title_page_styles"
+            app:entryValues="@array/title_page_styles_values"
+            android:defaultValue="middle" />
+
+        <CheckBoxPreference
+            app:key="output_toc"
+            app:title="目次ページを出力"
+            android:defaultValue="true" />
+
+        <ListPreference
+            app:key="toc_style"
+            app:title="目次スタイル"
+            app:entries="@array/toc_styles"
+            app:entryValues="@array/toc_styles_values"
+            android:defaultValue="vertical" />
+    </PreferenceCategory>
+
+    <!-- 出力ファイル設定 -->
+    <PreferenceCategory app:title="出力ファイル設定">
+
+        <ListPreference
+            app:key="file_extension"
+            app:title="拡張子"
+            app:summary="出力するファイルの拡張子"
+            app:entries="@array/file_extension_entries"
+            app:entryValues="@array/file_extension_values"
+            android:defaultValue=".epub" />
+
+        <SwitchPreferenceCompat
+            app:key="use_title_for_filename"
+            app:title="出力ファイル名に表題利用"
+            android:defaultValue="true" />
+
+        <SwitchPreferenceCompat
+            app:key="overwrite_output"
+            app:title="出力ファイル上書き"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+
+    <!-- 出力先 -->
+    <PreferenceCategory app:title="出力先">
+
+        <SwitchPreferenceCompat
+            app:key="same_path"
+            app:title="入力と同じ場所に出力"
+            android:defaultValue="true" />
+
+        <EditTextPreference
+            app:key="output_path"
+            app:title="出力先フォルダ"
+            app:summary="出力先を指定します"
+            app:dialogTitle="フォルダパスを入力"
+            app:enabled="false" />
+    </PreferenceCategory>
+
+    <!-- 変換 -->
+    <PreferenceCategory app:title="変換設定">
+
+        <ListPreference
+            app:key="input_encoding"
+            app:title="入力文字コード"
+            app:entries="@array/input_encoding_entries"
+            app:entryValues="@array/input_encoding_values"
+            android:defaultValue="AUTO" />
+
+        <ListPreference
+            app:key="language"
+            app:title="言語"
+            app:entries="@array/language_entries"
+            app:entryValues="@array/language_values"
+            android:defaultValue="ja" />
+
+        <ListPreference
+            app:key="text_direction"
+            app:title="縦書き/横書き"
+            app:entries="@array/text_direction_entries"
+            app:entryValues="@array/text_direction_values"
+            android:defaultValue="vertical" />
+
+        <Preference
+            app:key="select_file"
+            app:title="ファイル選択"
+            app:summary="ファイルを選択して変換を開始"
+            />
+    </PreferenceCategory>
+
+    <!-- 挿絵除外 -->
+    <CheckBoxPreference
+        app:key="exclude_illustrations"
+        app:title="挿絵除外"
+        app:summary="テキストの画像注記は表紙と外字画像以外はePubに格納されません"
+        android:defaultValue="false" />
+
+    <!-- 画面サイズ -->
+    <PreferenceCategory app:title="画面・表紙サイズ">
+
+        <EditTextPreference
+            app:key="screen_width"
+            app:title="画面 横(px)"
+            android:inputType="number"
+            android:defaultValue="1600" />
+
+        <EditTextPreference
+            app:key="screen_height"
+            app:title="画面 縦(px)"
+            android:inputType="number"
+            android:defaultValue="2560" />
+
+        <EditTextPreference
+            app:key="cover_width"
+            app:title="表紙 横(px)"
+            android:inputType="number"
+            android:defaultValue="0" />
+
+        <EditTextPreference
+            app:key="cover_height"
+            app:title="表紙 縦(px)"
+            android:inputType="number"
+            android:defaultValue="0" />
+
+    </PreferenceCategory>
+
+    <!-- 画像倍率 -->
+    <PreferenceCategory app:title="画像表示倍率">
+
+        <CheckBoxPreference
+            app:key="image_scale_enabled"
+            app:title="有効"
+            app:summary="画面の解像度に合わせて画像の幅を％指定します"
+            android:defaultValue="true" />
+
+        <EditTextPreference
+            app:key="image_scale_factor"
+            app:title="画像表示倍率（倍）"
+            android:inputType="numberDecimal"
+            android:defaultValue="1.0" />
+    </PreferenceCategory>
+
+    <!-- 画像回り込み -->
+    <PreferenceCategory app:title="画像回り込み (※単ページ化より優先)">
+        <SwitchPreferenceCompat
+            app:key="image_float_enabled"
+            app:title="回り込み有効"
+            app:summary="画像の実サイズが指定サイズ以下の画像を回り込み設定します"
+            android:defaultValue="false" />
+
+        <EditTextPreference
+            app:key="image_float_width"
+            app:title="横 (px)"
+            app:dialogTitle="画像回り込み 横サイズ"
+            android:inputType="number"
+            android:defaultValue="600" />
+
+        <EditTextPreference
+            app:key="image_float_height"
+            app:title="縦 (px)"
+            app:dialogTitle="画像回り込み 縦サイズ"
+            android:inputType="number"
+            android:defaultValue="400" />
+
+        <ListPreference
+            app:key="image_float_position"
+            app:title="配置"
+            android:defaultValue="上/左"
+            app:entries="@array/image_float_position_entries"
+            app:entryValues="@array/image_float_position_values" />
+    </PreferenceCategory>
+
+    <!-- 画像単ページ化 -->
+    <PreferenceCategory app:title="画像単ページ化">
+        <EditTextPreference
+            app:key="single_page_width"
+            app:title="単ページ 横 (px)"
+            android:inputType="number"
+            android:defaultValue="200" />
+
+        <EditTextPreference
+            app:key="single_page_height"
+            app:title="単ページ 縦 (px)"
+            android:inputType="number"
+            android:defaultValue="300" />
+
+        <EditTextPreference
+            app:key="single_page_width_only"
+            app:title="横のみ (px)"
+            android:inputType="number"
+            android:defaultValue="300" />
+
+        <ListPreference
+            app:key="image_size_mode"
+            app:title="縮小表示モード"
+            android:defaultValue="none"
+            app:entries="@array/image_size_mode_entries"
+            app:entryValues="@array/image_size_mode_values" />
+
+        <SwitchPreferenceCompat
+            app:key="fit_image"
+            app:title="拡大表示"
+            app:summary="画面サイズより小さい画像を幅高さに合わせて拡大表示します"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+
+    <!-- Float指定 -->
+    <PreferenceCategory app:title="Float指定 (Readerのみ)">
+        <CheckBoxPreference
+            app:key="float_image_single_page"
+            app:title="単ページ画像"
+            app:summary="単ページ対象の画像をfloat表示します。xhtmlは分割されません" />
+        <CheckBoxPreference
+            app:key="float_image_block"
+            app:title="通常画像"
+            app:summary="回り込み、単ページ以外の画像をfloat表示します。64px以上の画像のみ" />
+    </PreferenceCategory>
+
+    <!-- 全画面表示 -->
+    <PreferenceCategory app:title="全画面表示">
+        <CheckBoxPreference
+            app:key="output_svg"
+            app:title="SVGタグ出力（画像zipのみ）"
+            app:summary="画像のみのzipの場合、固定レイアウト＋SVGタグで出力します" />
+    </PreferenceCategory>
+
+    <!-- Jpeg圧縮率 -->
+    <PreferenceCategory app:title="Jpeg圧縮率">
+        <EditTextPreference
+            app:key="jpeg_quality"
+            app:title="圧縮率 (30～100)"
+            app:summary="表紙編集、縮小、回転、余白除去時のJpeg保存時の画質(100が最高画質)"
+            android:inputType="number" />
+    </PreferenceCategory>
+
+    <!-- 色調整 -->
+    <PreferenceCategory app:title="色調整">
+        <CheckBoxPreference
+            app:key="gamma_correction"
+            app:title="ガンマ補正"
+            app:summary="画像の濃さを変更します (濃:0.2～1.8:淡)" />
+        <EditTextPreference
+            app:key="gamma_value"
+            app:title="ガンマ値"
+            app:summary="例: 1.0"
+            android:inputType="numberDecimal" />
+    </PreferenceCategory>
+
+    <!-- 表題 -->
+
+    <PreferenceCategory android:title="余白除去">
+
+        <SwitchPreferenceCompat
+            android:key="auto_margin_enabled"
+            android:title="有効"
+            android:defaultValue="false" />
+
+        <EditTextPreference
+            android:key="auto_margin_limit_h"
+            android:title="横方向の余白除去量 (%)"
+            android:defaultValue="15"
+            android:enabled="false"
+            android:inputType="number" />
+
+        <EditTextPreference
+            android:key="auto_margin_limit_v"
+            android:title="縦方向の余白除去量 (%)"
+            android:defaultValue="15"
+            android:enabled="false"
+            android:inputType="number" />
+
+        <EditTextPreference
+            android:key="auto_margin_padding"
+            android:title="余白追加量 (%)"
+            android:defaultValue="1.0"
+            android:enabled="false"
+            android:inputType="numberDecimal" />
+
+        <EditTextPreference
+            android:key="auto_margin_white_level"
+            android:title="白レベル (0〜100)"
+            android:defaultValue="80"
+            android:enabled="false"
+            android:inputType="number" />
+
+        <ListPreference
+            android:key="auto_margin_nombre_position"
+            android:title="ノンブル除去位置"
+            android:defaultValue="none"
+            android:entries="@array/nombre_position_entries"
+            android:entryValues="@array/nombre_position_values" />
+
+        <EditTextPreference
+            android:key="auto_margin_nombre_size"
+            android:title="ノンブル高さ (%)"
+            android:defaultValue="3.0"
+            android:enabled="false"
+            android:inputType="numberDecimal" />
+
+    </PreferenceCategory>
+
+    <!-- 文中全角スペースの処理 -->
+    <PreferenceCategory android:title="文中全角スペースの処理">
+        <ListPreference
+            android:key="space_handling"
+            android:title="行末で非表示"
+            android:entries="@array/space_handling_entries"
+            android:entryValues="@array/space_handling_values"
+            android:defaultValue="default"
+            android:summary="%s" />
+    </PreferenceCategory>
+
+    <!-- 「○○」に「××」の注記 -->
+    <PreferenceCategory android:title="「○○」に「××」の注記">
+        <ListPreference
+            android:key="annotation_handling"
+            android:title="注記の表示方法"
+            android:entries="@array/annotation_entries"
+            android:entryValues="@array/annotation_values"
+            android:defaultValue="0"
+            android:summary="%s" />
+    </PreferenceCategory>
+
+    <!-- 自動縦中横 -->
+    <PreferenceCategory android:title="自動縦中横">
+        <SwitchPreferenceCompat
+            android:key="enable_auto_yoko"
+            android:title="有効"
+            android:defaultValue="true"
+            android:summary="2文字の数字、!?を縦中横で表示します。" />
+        <CheckBoxPreference
+            android:key="auto_yoko_num1"
+            android:title="1桁数字を縦中横"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="auto_yoko_num3"
+            android:title="3桁数字を縦中横"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="auto_eq1"
+            android:title="!? 1文字"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+    <!-- コメントブロック出力 -->
+    <PreferenceCategory android:title="コメントブロック出力">
+        <CheckBoxPreference
+            android:key="comment_output"
+            android:title="コメント出力"
+            android:summary="コメント行の間を出力します"
+            android:defaultValue="false" />
+
+        <CheckBoxPreference
+            android:key="comment_convert"
+            android:title="コメント内注記変換"
+            android:summary="コメント内の注記を変換します"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
+    <!-- 栞用ID -->
+    <PreferenceCategory android:title="栞用ID">
+        <CheckBoxPreference
+            android:key="mark_id"
+            android:title="各行に出力"
+            android:summary="Kobo向けの栞を記憶するためのIDを各行に設定します"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
+    <!-- 空行除去 -->
+    <PreferenceCategory android:title="空行除去">
+        <ListPreference
+            android:key="remove_empty_line"
+            android:title="空行を減らす"
+            android:summary="空行の行数を減らします。見出し行の後ろ3行以内は1行残します"
+            android:entries="@array/remove_empty_line_entries"
+            android:entryValues="@array/remove_empty_line_values"
+            android:defaultValue="0" />
+
+        <ListPreference
+            android:key="max_empty_line"
+            android:title="最大空行数"
+            android:summary="空行の連続を指定行数以下に制限します"
+            android:entries="@array/max_empty_line_entries"
+            android:entryValues="@array/max_empty_line_values"
+            android:defaultValue="-" />
+    </PreferenceCategory>
+
+    <!-- 行頭字下げ -->
+    <PreferenceCategory android:title="行頭字下げ">
+        <CheckBoxPreference
+            android:key="force_indent"
+            android:title="字下げ有効"
+            android:summary="行頭が「『―”（〈〔【と全角空白以外なら行頭に全角空白を追加します。半角空白のみは全角に置き換えます"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
+    <!-- 強制改ページ -->
+    <PreferenceCategory android:title="強制改ページ">
+
+        <!-- 強制改ページ有効 -->
+        <CheckBoxPreference
+            android:key="page_break_enabled"
+            android:title="有効"
+            android:summary="指定サイズを超えた時点で強制改ページ（ブロック注記の外側のみ）"
+            android:defaultValue="true" />
+
+        <!-- 改ページサイズ（KB） -->
+        <EditTextPreference
+            android:key="page_break_size_kb"
+            android:title="改ページサイズ"
+            android:summary="改ページ判定に使う本文サイズ（KB）"
+            android:defaultValue="400"
+            android:inputType="number" />
+
+        <!-- 空行による改ページの有効化 -->
+        <CheckBoxPreference
+            android:key="page_break_empty_enabled"
+            android:title="空行による改ページ"
+            android:summary="指定行数以上の空行で改ページ（サイズ制限付き）"
+            android:defaultValue="false" />
+
+        <!-- 空行行数 -->
+        <ListPreference
+            android:key="page_break_empty_line_count"
+            android:title="空行行数"
+            android:summary="空行の行数（1〜9）"
+            android:entries="@array/page_break_empty_line_entries"
+            android:entryValues="@array/page_break_empty_line_values"
+            android:defaultValue="2" />
+
+        <!-- 空行サイズ制限 -->
+        <EditTextPreference
+            android:key="page_break_empty_size_kb"
+            android:title="空行による改ページのサイズ制限（KB）"
+            android:summary="空行による改ページが発動する本文サイズ"
+            android:defaultValue="300"
+            android:inputType="number" />
+
+        <!-- 見出し前の改ページ -->
+        <CheckBoxPreference
+            android:key="page_break_chapter_enabled"
+            android:title="見出し前で改ページ"
+            android:summary="見出し前で改ページを入れる（サイズ制限付き）"
+            android:defaultValue="false" />
+
+        <!-- 見出し前の改ページサイズ -->
+        <EditTextPreference
+            android:key="page_break_chapter_size_kb"
+            android:title="見出し前の改ページサイズ（KB）"
+            android:summary="見出し前で改ページする際の本文サイズ制限"
+            android:defaultValue="200"
+            android:inputType="number" />
+
+    </PreferenceCategory>
+
+    <!-- 目次設定 -->
+    <PreferenceCategory android:title="目次設定">
+
+        <!-- 最大文字数 -->
+        <EditTextPreference
+            android:key="max_chapter_name_length"
+            android:title="最大文字数"
+            android:summary="見出しの最大文字数"
+            android:defaultValue="64"
+            android:inputType="number" />
+
+        <!-- 表紙を目次に追加 -->
+        <CheckBoxPreference
+            android:key="toc_include_cover"
+            android:title="表紙"
+            android:summary="表紙画像のページを目次に追加します"
+            android:defaultValue="false" />
+
+        <!-- 表題を目次に追加 -->
+        <CheckBoxPreference
+            android:key="toc_include_title"
+            android:title="表題"
+            android:summary="表題の行を目次に追加します"
+            android:defaultValue="true" />
+
+        <!-- 次の行を繋げる -->
+        <CheckBoxPreference
+            android:key="toc_join_next_line"
+            android:title="次の行を繋げる"
+            android:summary="次の行が空行でなければ見出しの後ろに繋げます"
+            android:defaultValue="false" />
+
+        <!-- 連続する見出しを除外 -->
+        <CheckBoxPreference
+            android:key="toc_exclude_repeated"
+            android:title="連続する見出しを除外"
+            android:summary="3つ以上連続する自動抽出された見出しを除外します（空行1行間隔も連続扱い）"
+            android:defaultValue="true" />
+
+        <!-- nav階層化 -->
+        <CheckBoxPreference
+            android:key="nav_nested"
+            android:title="目次ページ階層化"
+            android:summary="目次ページ(nav.xhtml)を階層化します"
+            android:defaultValue="true" />
+
+        <!-- ncx階層化 -->
+        <CheckBoxPreference
+            android:key="ncx_nested"
+            android:title="目次(ncx)階層化"
+            android:summary="目次(toc.ncx)を階層化します"
+            android:defaultValue="true" />
+
+    </PreferenceCategory>
+
+    <!-- 目次抽出 -->
+    <PreferenceCategory android:title="目次抽出">
+
+        <!-- 見出し注記 -->
+        <CheckBoxPreference
+            android:key="chapter_head"
+            android:title="見出し"
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            android:key="chapter_head1"
+            android:title="大見出し"
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            android:key="chapter_head2"
+            android:title="中見出し"
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            android:key="chapter_head3"
+            android:title="小見出し"
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            android:key="chapter_same_line"
+            android:title="同行見出し含む"
+            android:defaultValue="false" />
+
+        <!-- 改ページ後 -->
+        <CheckBoxPreference
+            android:key="chapter_after_pagebreak"
+            android:title="改ページ後"
+            android:summary="改ページ後の先頭行の文字を目次に出力します"
+            android:defaultValue="true" />
+
+        <!-- 章見出し -->
+        <CheckBoxPreference
+            android:key="chapter_name"
+            android:title="章見出し (第～章/その～/～章/序/プロローグ 等)"
+            android:summary="第～話/第～章/第～篇/第～部/第～節/第～幕/第～編/その～/～章/プロローグ/エピローグ/モノローグ/序/序章/終章/転章/間章/幕間"
+            android:defaultValue="true" />
+
+        <!-- 数字系 -->
+        <CheckBoxPreference
+            android:key="chapter_num_only"
+            android:title="数字のみ"
+            android:defaultValue="false" />
+
+        <CheckBoxPreference
+            android:key="chapter_num_title"
+            android:title="数字+見出し"
+            android:defaultValue="false" />
+
+        <CheckBoxPreference
+            android:key="chapter_num_paren"
+            android:title="括弧内数字のみ"
+            android:summary="（）〈〉〔〕【】内の数字"
+            android:defaultValue="false" />
+
+        <CheckBoxPreference
+            android:key="chapter_num_paren_title"
+            android:title="括弧内数字+見出し"
+            android:defaultValue="false" />
+
+        <!-- その他パターン -->
+        <CheckBoxPreference
+            android:key="chapter_pattern_enabled"
+            android:title="その他パターン"
+            android:summary="目次抽出パターンを正規表現で指定します。前後の空白とタグを除いた文字列と比較します。"
+            android:defaultValue="false" />
+
+        <ListPreference
+            android:key="chapter_pattern"
+            android:title="パターン選択"
+            android:entries="@array/chapter_patterns_entries"
+            android:entryValues="@array/chapter_patterns_values"
+            android:defaultValue="^(見出し１|見出し２|見出し３)$"
+            android:enabled="true" />
+
+    </PreferenceCategory>
+    <!-- スタイル -->
+    <PreferenceCategory android:title="スタイル">
+
+        <!-- 行の高さ -->
+        <EditTextPreference
+            android:key="line_height"
+            android:title="行の高さ"
+            android:dialogTitle="行の高さを入力"
+            android:inputType="numberDecimal"
+            android:defaultValue="1.8"
+            android:summary="1.3 ～ 2.0" />
+
+        <!-- 文字サイズ -->
+        <EditTextPreference
+            android:key="font_size"
+            android:title="文字サイズ (%)"
+            android:dialogTitle="文字サイズを入力"
+            android:inputType="number"
+            android:defaultValue="100"
+            android:summary="75 ～ 125%" />
+
+    </PreferenceCategory>
+
+    <!-- 太字ゴシック表示 -->
+    <PreferenceCategory android:title="太字ゴシック表示">
+        <CheckBoxPreference
+            android:key="bold_note"
+            android:title="太字注記"
+            android:summary="太字注記を太字ゴシックで表示"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="gothic_note"
+            android:title="ゴシック体注記"
+            android:summary="ゴシック体注記を太字ゴシックで表示"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
+    <!-- テキスト余白 -->
+    <PreferenceCategory android:title="テキスト余白 (@page margin)">
+        <EditTextPreference
+            android:key="page_margin_top"
+            android:title="上"
+            android:inputType="numberDecimal"
+            android:defaultValue="0.5" />
+        <EditTextPreference
+            android:key="page_margin_right"
+            android:title="右"
+            android:inputType="numberDecimal"
+            android:defaultValue="0.5" />
+        <EditTextPreference
+            android:key="page_margin_bottom"
+            android:title="下"
+            android:inputType="numberDecimal"
+            android:defaultValue="0.5" />
+        <EditTextPreference
+            android:key="page_margin_left"
+            android:title="左"
+            android:inputType="numberDecimal"
+            android:defaultValue="0.5" />
+
+        <!-- 単位選択 -->
+        <ListPreference
+            android:key="page_margin_unit"
+            android:title="単位"
+            android:entries="@array/margin_units"
+            android:entryValues="@array/margin_units_values"
+            android:defaultValue="char" />
+    </PreferenceCategory>
+
+    <!-- テキスト余白 (html margin) Reader用 -->
+    <PreferenceCategory android:title="テキスト余白 (html margin) Reader用">
+        <EditTextPreference
+            android:key="body_margin_top"
+            android:title="上"
+            android:inputType="numberDecimal"
+            android:defaultValue="0" />
+        <EditTextPreference
+            android:key="body_margin_right"
+            android:title="右"
+            android:inputType="numberDecimal"
+            android:defaultValue="0" />
+        <EditTextPreference
+            android:key="body_margin_bottom"
+            android:title="下"
+            android:inputType="numberDecimal"
+            android:defaultValue="0" />
+        <EditTextPreference
+            android:key="body_margin_left"
+            android:title="左"
+            android:inputType="numberDecimal"
+            android:defaultValue="0" />
+
+        <!-- 単位選択 -->
+        <ListPreference
+            android:key="body_margin_unit"
+            android:title="単位"
+            android:entries="@array/margin_units"
+            android:entryValues="@array/margin_units_values"
+            android:defaultValue="char" />
+    </PreferenceCategory>
+    <!-- 文字出力 -->
+    <PreferenceCategory android:title="文字出力">
+
+        <!-- 濁点/半濁点文字 -->
+        <ListPreference
+            android:key="dakuten_output_type"
+            android:title="濁点/半濁点文字の出力"
+            android:dialogTitle="濁点/半濁点文字の出力方法を選択"
+            android:entries="@array/dakuten_output_options"
+            android:entryValues="@array/dakuten_output_values"
+            android:defaultValue="font"
+            android:summary="濁点/半濁点文字の出力方法を選択します" />
+
+    </PreferenceCategory>
+
+    <!-- IVS出力 -->
+    <PreferenceCategory android:title="IVS出力 (Kobo, Kindle非対応)">
+        <CheckBoxPreference
+            android:key="ivs_bmp"
+            android:title="英数字用 (U+FE00-FE0E)"
+            android:summary="英数字、絵文字向けのIVSを出力"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="ivs_ssp"
+            android:title="漢字用 (U+E0100-E01EF)"
+            android:summary="漢字用のIVSを出力"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+    <!-- Web -->
+    <PreferenceCategory android:title="Web">
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="取得設定">
+        <EditTextPreference
+            android:key="web_interval"
+            android:title="取得間隔"
+            android:summary="Web小説の取得間隔（秒）を設定します"
+            android:defaultValue="0.5"
+            android:inputType="numberDecimal" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="UA設定">
+        <ListPreference
+            android:key="ua_type"
+            android:title="ユーザーエージェント"
+            android:summary="ユーザーエージェントを設定します"
+            android:entries="@array/ua_entries"
+            android:entryValues="@array/ua_values"
+            android:defaultValue="" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Web画像設定">
+        <CheckBoxPreference
+            android:key="web_large_image"
+            android:title="画像大"
+            android:summary="Web画像のオリジナルを取得" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="キャッシュ保存パス">
+        <EditTextPreference
+            android:key="cache_path"
+            android:title="保存パス"
+            android:summary="キャッシュファイルを保存するパスです。フルパスまたは相対パスを指定"
+            android:defaultValue=".cache" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="更新判定">
+        <EditTextPreference
+            android:key="web_modified_expire"
+            android:title="更新間隔"
+            android:summary="この時間以内に取得したキャッシュを更新分として処理します"
+            android:defaultValue="24"
+            android:inputType="number" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="ePub出力設定">
+        <CheckBoxPreference
+            android:key="web_convert_updated_only"
+            android:title="更新時のみ出力"
+            android:summary="新規追加または更新がある場合のみePubを出力します" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="変換対象">
+        <CheckBoxPreference
+            android:key="web_latest_only"
+            android:title="最新"
+            android:summary="最新話から指定話数のみ出力します" />
+
+        <EditTextPreference
+            android:key="web_latest_count"
+            android:title="出力話数"
+            android:summary="最新話からの出力数"
+            android:defaultValue="1"
+            android:inputType="number" />
+
+        <CheckBoxPreference
+            android:key="web_modified_only"
+            android:title="更新分"
+            android:summary="追加更新のあった話のみ変換します" />
+
+        <CheckBoxPreference
+            android:key="web_modified_tail_only"
+            android:title="連続"
+            android:summary="最新話から連続した更新分のみ変換します" />
+    </PreferenceCategory>
 
 </PreferenceScreen>
