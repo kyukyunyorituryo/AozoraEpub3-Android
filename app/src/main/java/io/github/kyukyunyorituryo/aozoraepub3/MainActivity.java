@@ -73,11 +73,10 @@ public class MainActivity extends AppCompatActivity {
         LogAppender.setTextView(logTextView);
 
         // ログの出力テスト
-        LogAppender.println("アプリ起動");
-        LogAppender.info(42, "情報ログ", "詳細情報");
-        LogAppender.warn(100, "警告ログ");
-        LogAppender.error(200, "エラーログ", "エラー詳細");
-
+        LogAppender.println("AozoraEpub3: "+AozoraEpub3.VERSION);
+        LogAppender.append("  ( VM specification version "+System.getProperty("java.specification.version"));
+        LogAppender.append("  /  "+System.getProperty("os.name"));
+        LogAppender.append(" )\n対応ファイル: 青空文庫txt(txt,zip,rar), 画像(zip,rar,cbz)");
         // 設定値を取得する例
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String selectedTitleType = prefs.getString("TitleType","0");
@@ -583,7 +582,7 @@ public class MainActivity extends AppCompatActivity {
                     bookInfo.creator = titleCreator[1] == null ? "" : titleCreator[1];
             }
 
-            File outFile = getOutFile(srcFile, dstPath, bookInfo, autoFileName, outExt);
+            outFile = getOutFile(srcFile, dstPath, bookInfo, autoFileName, outExt);
             AozoraEpub3.convertFile(
                     srcFile, ext, outFile,
                     aozoraConverter, writer,
@@ -633,7 +632,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** 非同期タスクでダウンロードと変換処理 */
-    private static class ConvertWebTask extends AsyncTask<Void, Void, Void> {
+    private class ConvertWebTask extends AsyncTask<Void, Void, Void> {
         private Context context;
         private List<String> urlList;
         private List<File> shortcutFiles;
@@ -699,7 +698,7 @@ public class MainActivity extends AppCompatActivity {
                     boolean WebModifiedOnly =false;
                     boolean WebModifiedTail =false;
                     boolean WebLageImage =false;
-				    File srcFile = webConverter.convertToAozoraText(urlString, getCachePath(context), interval, modifiedExpire,
+				    srcFile = webConverter.convertToAozoraText(urlString, getCachePath(context), interval, modifiedExpire,
 					WebConvertUpdated, WebModifiedOnly, WebModifiedTail,
 					beforeChapter,Ua,WebLageImage);
                    // File srcFile = webConverter.convertToAozoraText(urlString, getCachePath(context));
