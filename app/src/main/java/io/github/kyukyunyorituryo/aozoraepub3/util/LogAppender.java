@@ -24,11 +24,10 @@ public class LogAppender {
 	}
 
 	public static void append(String log) {
-		Log.d("LogAppender", log);  // Androidのログ出力
+		System.out.print(log);
 		if (textView != null) {
 			handler.post(() -> {
 				textView.append(log);
-				textView.append("\n");
 			});
 		}
 	}
