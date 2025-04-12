@@ -46,7 +46,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#EEEEEE"
-        android:text="ログ出力エリア\n"
+        android:text=""
         android:textSize="16sp"
         android:scrollbars="vertical"/>
 </LinearLayout>
