@@ -54,16 +54,12 @@
         <item>.epub</item>
         <item>.kepub.epub</item>
         <item>.fxl.kepub.epub</item>
-        <item>.mobi</item>
-        <item>.mobi+.epub</item>
     </string-array>
 
     <string-array name="file_extension_values">
         <item>.epub</item>
         <item>.kepub.epub</item>
         <item>.fxl.kepub.epub</item>
-        <item>.mobi</item>
-        <item>.mobi+.epub</item>
     </string-array>
     <string-array name="input_encoding_entries">
         <item>AUTO</item>
