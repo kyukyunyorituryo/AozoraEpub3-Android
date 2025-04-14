@@ -99,7 +99,7 @@
             android:defaultValue="true" />
     </PreferenceCategory>
 
-    <!-- 出力先 -->
+    <!-- 出力先
     <PreferenceCategory app:title="出力先">
 
         <SwitchPreferenceCompat
@@ -114,7 +114,7 @@
             app:dialogTitle="フォルダパスを入力"
             app:enabled="false" />
     </PreferenceCategory>
-
+    -->
     <!-- 変換 -->
     <PreferenceCategory app:title="変換設定">
 
@@ -134,14 +134,14 @@
 
         <ListPreference
             app:key="text_direction"
-            app:title="縦書き/横書き"
+            app:title="組方向、縦書き/横書き"
             app:entries="@array/text_direction_entries"
             app:entryValues="@array/text_direction_values"
             android:defaultValue="vertical" />
-
+        <!--
         <Preference
             app:key="select_file"
-            app:title="ファイル選択"
+            app:titl-->e="ファイル選択"
             app:summary="ファイルを選択して変換を開始"
             />
     </PreferenceCategory>
@@ -189,7 +189,7 @@
             app:key="image_scale_enabled"
             app:title="有効"
             app:summary="画面の解像度に合わせて画像の幅を％指定します"
-            android:defaultValue="true" />
+            android:defaultValue="false" />
 
         <EditTextPreference
             app:key="image_scale_factor"
@@ -288,7 +288,8 @@
             app:key="jpeg_quality"
             app:title="圧縮率 (30～100)"
             app:summary="表紙編集、縮小、回転、余白除去時のJpeg保存時の画質(100が最高画質)"
-            android:inputType="number" />
+            android:inputType="number"
+            android:defaultValue="85"/>
     </PreferenceCategory>
 
     <!-- 色調整 -->
@@ -304,7 +305,42 @@
             android:inputType="numberDecimal" />
     </PreferenceCategory>
 
-    <!-- 表題 -->
+    <!-- 画像縮小回転 -->
+    <PreferenceCategory android:title="画像縮小回転">
+
+        <!-- 横縮小 -->
+        <CheckBoxPreference
+            android:key="resize_width_enabled"
+            android:title="横: 有効化"
+            android:defaultValue="false"/>
+        <EditTextPreference
+            android:key="resize_width"
+            android:title="横(px以下)"
+            android:inputType="number"
+            android:defaultValue="2048"/>
+
+        <!-- 縦縮小 -->
+        <CheckBoxPreference
+            android:key="resize_height_enabled"
+            android:title="縦: 有効化"
+            android:defaultValue="false"/>
+        <EditTextPreference
+            android:key="resize_height"
+            android:title="縦(px以下)"
+            android:inputType="number"
+            android:defaultValue="2048"/>
+
+        <!-- 自動回転 -->
+        <ListPreference
+            android:key="auto_rotate_image"
+            android:title="自動回転"
+            android:summary="単ページ時画面の縦横比に合わせて画像を回転します"
+            android:entries="@array/rotate_options"
+            android:entryValues="@array/rotate_values"
+            android:defaultValue="none" />
+    </PreferenceCategory>
+
+    <!-- 余白除去 -->
 
     <PreferenceCategory android:title="余白除去">
 
