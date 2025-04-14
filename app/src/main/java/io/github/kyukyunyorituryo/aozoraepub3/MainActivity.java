@@ -7,12 +7,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.method.ScrollingMovementMethod;
-import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,18 +32,24 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serial;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.net.URI;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.github.kyukyunyorituryo.aozoraepub3.converter.AozoraEpub3Converter;
 import io.github.kyukyunyorituryo.aozoraepub3.image.ImageInfoReader;
 import io.github.kyukyunyorituryo.aozoraepub3.info.BookInfo;
+import io.github.kyukyunyorituryo.aozoraepub3.info.BookInfoHistory;
 import io.github.kyukyunyorituryo.aozoraepub3.info.SectionInfo;
 import io.github.kyukyunyorituryo.aozoraepub3.util.LogAppender;
 import io.github.kyukyunyorituryo.aozoraepub3.writer.Epub3ImageWriter;
@@ -54,6 +59,27 @@ public class MainActivity extends AppCompatActivity {
     private File srcFile;
     private Properties props;
     private File outFile;
+
+    //プログレスバー
+    ProgressBar jProgressBar;
+
+    /** 青空→ePub3変換クラス */
+    AozoraEpub3Converter aozoraConverter;
+
+    /** Web小説青空変換クラス */
+    WebAozoraConverter webConverter;
+
+    /** ePub3出力クラス */
+    Epub3Writer epub3Writer;
+
+    /** ePub3画像出力クラス */
+    Epub3ImageWriter epub3ImageWriter;
+
+    /** 変換をキャンセルした場合true */
+    boolean convertCanceled = false;
+    /** 変換実行中 */
+    boolean running = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -829,27 +855,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /** Web変換 */
-    private void convertWeb(List<String> urlList, List<File> shortcutFiles, File dstPath) {
-        new ConvertWebTask(this, urlList, shortcutFiles, dstPath).execute();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executorService.shutdown(); // Activity終了時にシャットダウン
     }
 
-    /** 非同期タスクでダウンロードと変換処理 */
-    private class ConvertWebTask extends AsyncTask<Void, Void, Void> {
-        private Context context;
-        private List<String> urlList;
-        private List<File> shortcutFiles;
-        private File dstPath;
-
-        public ConvertWebTask(Context context, List<String> urlList, List<File> shortcutFiles, File dstPath) {
-            this.context = context;
-            this.urlList = urlList;
-            this.shortcutFiles = shortcutFiles;
-            this.dstPath = dstPath;
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
+    /** Web変換処理 */
+    private void convertWeb(List<String> urlList, List<File> shortcutFiles, File dstPath) {
+        executorService.submit(() -> {
             try {
                 for (int i = 0; i < urlList.size(); i++) {
                     String urlString = urlList.get(i);
@@ -857,17 +873,15 @@ public class MainActivity extends AppCompatActivity {
 
                     String ext = urlString.substring(urlString.lastIndexOf('.') + 1).toLowerCase();
                     if (ext.equals("zip") || ext.equals("txtz") || ext.equals("rar")) {
-                        // URLのファイル名を安全な形式に
                         String fileName = new File(new URI(urlString).getPath()).getName().replaceAll("[?*&|<>\"\\\\]", "_");
                         File srcFile = new File(dstPath, fileName);
 
-                        LogAppender.println("出力先にダウンロードします: " + srcFile.getCanonicalPath());
+                        postLog("出力先にダウンロードします: " + srcFile.getCanonicalPath());
 
                         if (!srcFile.getParentFile().exists()) {
                             srcFile.getParentFile().mkdirs();
                         }
 
-                        // ダウンロード処理
                         try (BufferedInputStream bis = new BufferedInputStream(new URL(urlString).openStream(), 8192);
                              BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(srcFile))) {
                             byte[] buffer = new byte[8192];
@@ -877,48 +891,51 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
 
-                        // 変換実行（仮のメソッド）
-                        convertFiles(new File[]{srcFile}, dstPath);
+                        // convertFiles(new File[]{srcFile}, dstPath);
                         continue;
                     }
 
-                    // WebAozoraConverterの処理（仮）
-                    LogAppender.println("--------");
-                    LogAppender.append(urlString);
-                    LogAppender.println(" を読み込みます");
+                    postLog("--------");
+                    postLog(urlString + " を読み込みます");
 
-                    WebAozoraConverter webConverter = WebAozoraConverter.createWebAozoraConverter(urlString, context);
+                    webConverter = WebAozoraConverter.createWebAozoraConverter(urlString, MainActivity.this);
                     if (webConverter == null) {
-                        LogAppender.append(urlString);
-                        LogAppender.println(" は変換できませんでした");
+                        postLog(urlString + " は変換できませんでした");
                         continue;
                     }
+
                     int interval = 500;
-                    String Ua="Chrome";
+                    String Ua = "Chrome";
                     int beforeChapter = 0;
                     float modifiedExpire = 0;
-                    boolean WebConvertUpdated= false;
-                    boolean WebModifiedOnly =false;
-                    boolean WebModifiedTail =false;
-                    boolean WebLageImage =false;
-				    srcFile = webConverter.convertToAozoraText(urlString, getCachePath(context), interval, modifiedExpire,
-					WebConvertUpdated, WebModifiedOnly, WebModifiedTail,
-					beforeChapter,Ua,WebLageImage);
-                   // File srcFile = webConverter.convertToAozoraText(urlString, getCachePath(context));
+                    boolean WebConvertUpdated = false;
+                    boolean WebModifiedOnly = false;
+                    boolean WebModifiedTail = false;
+                    boolean WebLageImage = false;
+
+                    srcFile = webConverter.convertToAozoraText(urlString, getCachePath(this), interval,
+                            modifiedExpire, WebConvertUpdated, WebModifiedOnly, WebModifiedTail,
+                            beforeChapter, Ua, WebLageImage);
+
                     if (srcFile == null) {
-                        LogAppender.append(urlString);
-                        LogAppender.println(" の変換をスキップまたは失敗しました");
+                        postLog(urlString + " の変換をスキップまたは失敗しました");
                         continue;
                     }
 
-                    // 変換処理実行
-                    convertFiles(new File[]{srcFile}, dstPath);
+                    // convertFiles(new File[]{srcFile}, dstPath);
                 }
             } catch (Exception e) {
-                LogAppender.println("エラーが発生しました: " + e.getMessage());
+                postLog("エラーが発生しました: " + e.getMessage());
+                e.printStackTrace();
             }
-            return null;
-        }
+        });
+    }
+
+    /** UIスレッドでログ出力 */
+    private void postLog(String message) {
+        runOnUiThread(() -> {
+            LogAppender.println(message); // ここが UI に表示するメソッド
+        });
     }
 
     /** キャッシュパスを取得 */
@@ -926,12 +943,865 @@ public class MainActivity extends AppCompatActivity {
         return context.getCacheDir();
     }
 
-    /** ファイルを変換するメソッド（仮） */
-    private static void convertFiles(File[] srcFiles, File dstPath) {
-        for (File file : srcFiles) {
-            LogAppender.println("変換中: " + file.getAbsolutePath());
-            // 実際の変換処理を実装
+
+    public void convertFiles( File[] srcFiles, File dstPath) {
+        if (srcFiles == null || srcFiles.length == 0) return;
+
+        convertCanceled = false;
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // 画面サイズと画像リサイズ
+        int resizeW = 0;
+        if (prefs.getBoolean("resizeW_enabled", false)) {
+            try {
+                resizeW = Integer.parseInt(prefs.getString("resizeW_value", "0"));
+            } catch (Exception ignored) {}
+        }
+
+        int resizeH = 0;
+        if (prefs.getBoolean("resizeH_enabled", false)) {
+            try {
+                resizeH = Integer.parseInt(prefs.getString("resizeH_value", "0"));
+            } catch (Exception ignored) {}
+        }
+
+        // 表示サイズ
+        int dispW = 0;
+        try {
+            dispW = Integer.parseInt(prefs.getString("dispW", "0"));
+        } catch (Exception ignored) {}
+
+        int dispH = 0;
+        try {
+            dispH = Integer.parseInt(prefs.getString("dispH", "0"));
+        } catch (Exception ignored) {}
+
+        // カバー画像サイズ
+        int coverW = 0;
+        try {
+            coverW = Integer.parseInt(prefs.getString("coverW", "0"));
+        } catch (Exception ignored) {}
+
+        int coverH = 0;
+        try {
+            coverH = Integer.parseInt(prefs.getString("coverH", "0"));
+        } catch (Exception ignored) {}
+
+        // 単ページ化サイズと幅
+        int singlePageSizeW = 0;
+        try {
+            singlePageSizeW = Integer.parseInt(prefs.getString("singlePageSizeW", "0"));
+        } catch (Exception ignored) {}
+
+        int singlePageSizeH = 0;
+        try {
+            singlePageSizeH = Integer.parseInt(prefs.getString("singlePageSizeH", "0"));
+        } catch (Exception ignored) {}
+
+        int singlePageWidth = 0;
+        try {
+            singlePageWidth = Integer.parseInt(prefs.getString("singlePageWidth", "0"));
+        } catch (Exception ignored) {}
+
+        // 画像スケールの取得
+        float imageScale = 0;
+        if (prefs.getBoolean("imageScale_enabled", false)) {
+            try {
+                imageScale = Float.parseFloat(prefs.getString("imageScale_value", "0"));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        // 画像の回り込み設定（float設定）
+        int imageFloatType = 0; // 0=無効, 1=上, 2=下
+        int imageFloatW = 0;
+        int imageFloatH = 0;
+
+        if (prefs.getBoolean("imageFloat_enabled", false)) {
+            imageFloatType = prefs.getInt("imageFloatType", 0); // 1 or 2 を直接保存する
+
+            try {
+                imageFloatW = Integer.parseInt(prefs.getString("imageFloatW", "0"));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            try {
+                imageFloatH = Integer.parseInt(prefs.getString("imageFloatH", "0"));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        // JPEGクオリティの取得（0.0f〜1.0f）
+        float jpegQuality = 0.8f;
+        try {
+            jpegQuality = Integer.parseInt(prefs.getString("jpegQuality", "80")) / 100f;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        // ガンマ値の取得
+        float gamma = 1.0f;
+        if (prefs.getBoolean("gamma_enabled", false)) {
+            try {
+                gamma = Float.parseFloat(prefs.getString("gamma_value", "1.0"));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        // 自動マージン設定（有効な場合のみ取得）
+        int autoMarginLimitH = 0;
+        int autoMarginLimitV = 0;
+        int autoMarginWhiteLevel = 0;
+        float autoMarginPadding = 0;
+        int autoMarginNombre = 0;
+        float autoMarginNombreSize = 0.03f;
+
+        if (prefs.getBoolean("autoMargin_enabled", false)) {
+            try {
+                autoMarginLimitH = Integer.parseInt(prefs.getString("autoMarginLimitH", "0"));
+                autoMarginLimitV = Integer.parseInt(prefs.getString("autoMarginLimitV", "0"));
+                autoMarginWhiteLevel = Integer.parseInt(prefs.getString("autoMarginWhiteLevel", "0"));
+                autoMarginPadding = Float.parseFloat(prefs.getString("autoMarginPadding", "0"));
+                autoMarginNombre = prefs.getInt("autoMarginNombre", 0);
+                autoMarginNombreSize = Float.parseFloat(prefs.getString("autoMarginNombreSize", "3")) * 0.01f;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        // 回転角度（選択肢 0=なし, 1=右, 2=左）
+        int rotateAngle = 0;
+        int rotateIndex = prefs.getInt("rotateImage", 0); // 0, 1, 2
+        if (rotateIndex == 1) rotateAngle = 90;
+        else if (rotateIndex == 2) rotateAngle = -90;
+
+        // 画像サイズタイプ（0=ASPECT, 1=AUTO）
+        int imageSizeType = SectionInfo.IMAGE_SIZE_TYPE_ASPECT;
+        if (prefs.getBoolean("imageSizeType_auto", false)) {
+            imageSizeType = SectionInfo.IMAGE_SIZE_TYPE_AUTO;
+        }
+
+        // フィット・SVG画像のフラグ
+        boolean fitImage = prefs.getBoolean("fitImage", false);
+        boolean svgImage = prefs.getBoolean("svgImage", false);
+
+        // 最終的な設定値をセット
+        this.epub3Writer.setImageParam(
+                dispW, dispH, coverW, coverH, resizeW, resizeH, singlePageSizeW, singlePageSizeH, singlePageWidth,
+                imageSizeType, fitImage, svgImage, rotateAngle,
+                imageScale, imageFloatType, imageFloatW, imageFloatH, jpegQuality, gamma,
+                autoMarginLimitH, autoMarginLimitV, autoMarginWhiteLevel, autoMarginPadding,
+                autoMarginNombre, autoMarginNombreSize
+        );
+
+        this.epub3ImageWriter.setImageParam(
+                dispW, dispH, coverW, coverH, resizeW, resizeH, singlePageSizeW, singlePageSizeH, singlePageWidth,
+                imageSizeType, fitImage, svgImage, rotateAngle,
+                imageScale, imageFloatType, imageFloatW, imageFloatH, jpegQuality, gamma,
+                autoMarginLimitH, autoMarginLimitV, autoMarginWhiteLevel, autoMarginPadding,
+                autoMarginNombre, autoMarginNombreSize
+        );
+
+        // 目次階層化設定（ナビゲーションとNCXのネスト）
+        boolean navNest = prefs.getBoolean("toc_nav_nest", false);
+        boolean ncxNest = prefs.getBoolean("toc_ncx_nest", false);
+        this.epub3Writer.setTocParam(navNest, ncxNest);
+
+        // スタイル設定
+        String[] pageMargin = new String[4];
+        String pageMarginUnit = prefs.getString("pageMargin_unit", "em"); // "em" or "%"
+        for (int i = 0; i < 4; i++) {
+            pageMargin[i] = prefs.getString("pageMargin" + i, "0") + pageMarginUnit;
+        }
+
+        String[] bodyMargin = new String[4];
+        String bodyMarginUnit = prefs.getString("bodyMargin_unit", "em"); // "em" or "%"
+        for (int i = 0; i < 4; i++) {
+            bodyMargin[i] = prefs.getString("bodyMargin" + i, "0") + bodyMarginUnit;
+        }
+
+        // 行間
+        float lineHeight = 1.8f;
+        try {
+            lineHeight = Float.parseFloat(prefs.getString("lineHeight", "1.8"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        // フォントサイズ
+        int fontSize = 100;
+        try {
+            fontSize = (int) Float.parseFloat(prefs.getString("fontSize", "100"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        // 濁点結合タイプ（0=結合, 1=分離, 2=自動）
+        int dakutenType = prefs.getInt("dakuten_type", 0);
+
+        // ゴシック・ボールド設定
+        boolean boldUseGothic = prefs.getBoolean("bold_use_gothic", false);
+        boolean gothicUseBold = prefs.getBoolean("gothic_use_bold", false);
+
+        // 設定を適用
+        this.epub3Writer.setStyles(pageMargin, bodyMargin, lineHeight, fontSize, boldUseGothic, gothicUseBold);
+
+        try {
+            // 挿絵なし
+            this.aozoraConverter.setNoIllust(prefs.getBoolean("no_illust", false));
+
+            // 栞用ID出力
+            this.aozoraConverter.setWithMarkId(prefs.getBoolean("with_mark_id", false));
+
+            // 変換オプション設定（自動横組み）
+            boolean autoYoko = prefs.getBoolean("auto_yoko", false);
+            boolean autoYokoNum1 = prefs.getBoolean("auto_yoko_num1", false);
+            boolean autoYokoNum3 = prefs.getBoolean("auto_yoko_num3", false);
+            boolean autoEQ1 = prefs.getBoolean("auto_eq1", false);
+            this.aozoraConverter.setAutoYoko(autoYoko, autoYokoNum1, autoYokoNum3, autoEQ1);
+
+            // 文字出力設定
+            dakutenType = Integer.parseInt(prefs.getString("dakuten_type", "0"));
+            boolean ivsBMP = prefs.getBoolean("ivs_bmp", false);
+            boolean ivsSSP = prefs.getBoolean("ivs_ssp", false);
+            this.aozoraConverter.setCharOutput(dakutenType, ivsBMP, ivsSSP);
+
+            // 全角スペースの禁則
+            int spaceHyphenation = Integer.parseInt(prefs.getString("space_hyphenation", "0"));
+            this.aozoraConverter.setSpaceHyphenation(spaceHyphenation);
+
+            // 注記のルビ表示
+            boolean chukiRuby1 = prefs.getBoolean("chuki_ruby_1", false);
+            boolean chukiRuby2 = prefs.getBoolean("chuki_ruby_2", false);
+            this.aozoraConverter.setChukiRuby(chukiRuby1, chukiRuby2);
+
+            // コメント変換
+            boolean commentPrint = prefs.getBoolean("comment_print", false);
+            boolean commentConvert = prefs.getBoolean("comment_convert", false);
+            this.aozoraConverter.setCommentPrint(commentPrint, commentConvert);
+
+            // float 表示
+            boolean floatPage = prefs.getBoolean("image_float_page", false);
+            boolean floatBlock = prefs.getBoolean("image_float_block", false);
+            this.aozoraConverter.setImageFloat(floatPage, floatBlock);
+
+            // 空行除去
+            int removeEmptyLine = Integer.parseInt(prefs.getString("remove_empty_line", "0"));
+            int maxEmptyLine = Integer.parseInt(prefs.getString("max_empty_line", "0"));
+            this.aozoraConverter.setRemoveEmptyLine(removeEmptyLine, maxEmptyLine);
+
+            // 行頭字下げ
+            this.aozoraConverter.setForceIndent(prefs.getBoolean("force_indent", false));
+
+            // 強制改ページ
+            if (prefs.getBoolean("page_break_enabled", false)) {
+                try {
+                    int forcePageBreakSize = Integer.parseInt(prefs.getString("page_break_size_kb", "0")) * 1024;
+                    int forcePageBreakEmpty = 0;
+                    int forcePageBreakEmptySize = 0;
+                    int forcePageBreakChapter = 0;
+                    int forcePageBreakChapterSize = 0;
+
+                    if (prefs.getBoolean("page_break_empty_enabled", false)) {
+                        forcePageBreakEmpty = Integer.parseInt(prefs.getString("page_break_empty_line", "0"));
+                        forcePageBreakEmptySize = Integer.parseInt(prefs.getString("page_break_empty_size_kb", "0")) * 1024;
+                    }
+
+                    if (prefs.getBoolean("page_break_chapter_enabled", false)) {
+                        forcePageBreakChapter = 1;
+                        forcePageBreakChapterSize = Integer.parseInt(prefs.getString("page_break_chapter_size_kb", "0")) * 1024;
+                    }
+
+                    this.aozoraConverter.setForcePageBreak(
+                            forcePageBreakSize,
+                            forcePageBreakEmpty,
+                            forcePageBreakEmptySize,
+                            forcePageBreakChapter,
+                            forcePageBreakChapterSize
+                    );
+
+                } catch (Exception e) {
+                    LogAppender.println("強制改ページパラメータ読み込みエラー");
+                }
+            }
+
+            // 目次設定
+            int maxLength = 64;
+            try {
+                maxLength = Integer.parseInt(prefs.getString("max_chapter_name_length", "64"));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            this.aozoraConverter.setChapterLevel(
+                    maxLength,
+                    prefs.getBoolean("chapter_exclude", false),
+                    prefs.getBoolean("chapter_use_next_line", false),
+                    prefs.getBoolean("chapter_section", false),
+                    prefs.getBoolean("chapter_h", false),
+                    prefs.getBoolean("chapter_h1", false),
+                    prefs.getBoolean("chapter_h2", false),
+                    prefs.getBoolean("chapter_h3", false),
+                    prefs.getBoolean("same_line_chapter", false),
+                    prefs.getBoolean("chapter_name", false),
+                    prefs.getBoolean("chapter_num_only", false),
+                    prefs.getBoolean("chapter_num_title", false),
+                    prefs.getBoolean("chapter_num_paren", false),
+                    prefs.getBoolean("chapter_num_paren_title", false),
+                    prefs.getBoolean("chapter_pattern_enabled", false)
+                            ? prefs.getString("chapter_pattern", "").trim()
+                            : ""
+            );
+
+            ////////////////////////////////////
+            // すべてのファイルの変換実行
+            ////////////////////////////////////
+            this._convertFiles(srcFiles, dstPath);
+
+            if (convertCanceled) {
+                jProgressBar.setIndeterminate(false);
+                jProgressBar.setProgress(0);
+            }
+
+        } catch (Exception e) {
+            LogAppender.append("エラーが発生しました : ");
+            LogAppender.println(e.getMessage());
+            throw new RuntimeException(e);
+        } finally {
+            System.gc(); // Android では明示的なGCは基本不要ですが、互換用に残してあります
         }
     }
+    /** サブディレクトリ再帰用 */
+    private void _convertFiles(File[] srcFiles, File dstPath)
+    {
+        for (File srcFile : srcFiles) {
+            if (srcFile.isDirectory()) {
+                //サブディレクトリ 再帰
+                _convertFiles(Objects.requireNonNull(srcFile.listFiles()), dstPath);
+            } else if (srcFile.isFile()) {
+                convertFile(srcFile, dstPath);
+            }
+            //キャンセル
+            if (convertCanceled) return;
+        }
+    }
+    private void convertFile(File srcFile, File dstPath) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
+        // 拡張子取得
+        String ext = srcFile.getName();
+        ext = ext.substring(ext.lastIndexOf('.') + 1).toLowerCase();
+
+        // zip なら zip 内のテキストを検索
+        int txtCount = 1;
+        boolean imageOnly = false;
+        LogAppender.append("------ ");
+        switch (ext) {
+            case "zip":
+            case "txtz":
+                try {
+                    txtCount = AozoraEpub3.countZipText(srcFile);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                if (txtCount == 0) {
+                    txtCount = 1;
+                    imageOnly = true;
+                }
+                break;
+            case "rar":
+                try {
+                    txtCount = AozoraEpub3.countRarText(srcFile);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                if (txtCount == 0) {
+                    txtCount = 1;
+                    imageOnly = true;
+                }
+                break;
+            case "cbz":
+                imageOnly = true;
+                break;
+            case "txt":
+                LogAppender.println();
+                break;
+        }
+
+        if (this.convertCanceled) {
+            LogAppender.println("変換処理を中止しました : " + srcFile.getAbsolutePath());
+            return;
+        }
+
+        // SharedPreferences から現在のエンコード取得
+        String encType = prefs.getString("encoding_type", "UTF-8");
+
+        // キャッシュファイルなら一時的に UTF-8 に変更
+        String originalEncType = encType;
+        if (this.isCacheFile(srcFile,this)) {
+            encType = "UTF-8";
+        }
+
+        // エンコードを Converter に設定（必要なら）
+        //this.aozoraConverter.setEncoding(encType);
+
+        try {
+            for (int i = 0; i < txtCount; i++) {
+                convertFile(srcFile, dstPath, ext, i, imageOnly,this);
+                if (convertCanceled) return;
+            }
+        } finally {
+            // 元のエンコードに戻す（必要なら）
+            //this.aozoraConverter.setEncoding(originalEncType);
+        }
+    }
+    /** 内部用変換関数 Appletの設定を引数に渡す
+     * @param srcFile 変換するファイル txt,zip,cbz,(rar,cbr)
+     * @param dstPath 出力先パス
+     * @param txtIdx Zip内テキストファイルの位置
+     */
+    private void convertFile(File srcFile, File dstPath, String ext, int txtIdx, boolean imageOnly, Context context) {
+        //パラメータ設定
+        // 対応している拡張子以外は変換しない
+        if (!ext.equals("txt") && !ext.equals("txtz") && !ext.equals("zip") &&
+                !ext.equals("cbz") && !ext.equals("rar") &&
+                !ext.equals("png") && !ext.equals("jpg") && !ext.equals("jpeg") && !ext.equals("gif")) {
+            LogAppender.println("txt, txtz, zip, cbz, rar 以外は変換できません");
+            return;
+        }
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+        // 表紙にする挿絵の位置 -1なら挿絵は使わない
+        int coverImageIndex = -1;
+        // SVG表紙を使用するか
+        boolean coverSvg = false;
+
+        // coverFileName を取得（Preferenceに保存されている文字列として）
+        String coverFileName = prefs.getString("cover_image", "");
+        if ("先頭の挿絵".equals(coverFileName)) {
+            coverFileName = "";
+            coverImageIndex = 0;
+        } else if ("元ファイルと同名".equals(coverFileName)) {
+            coverFileName = AozoraEpub3.getSameCoverFileName(srcFile);
+        } else if ("表紙なし".equals(coverFileName)) {
+            coverFileName = null;
+        } else if ("SVG表紙".equals(coverFileName)) {
+            coverSvg = true;
+            coverFileName = null;
+        }
+
+        // 拡張子チェック（txtかどうか）
+        boolean isFile = "txt".equals(ext);
+        ImageInfoReader imageInfoReader = new ImageInfoReader(isFile, srcFile);
+
+        // zip内の画像読み込み
+        try {
+            if (!isFile) {
+                if ("rar".equals(ext)) {
+                    imageInfoReader.loadRarImageInfos(srcFile, imageOnly);
+                } else {
+                    imageInfoReader.loadZipImageInfos(srcFile, imageOnly);
+                }
+            }
+        } catch (Exception e) {
+            LogAppender.error(e.getMessage());
+            throw new RuntimeException(e);
+        }
+
+        // 文字コード判別
+        String encauto = "";
+        // エンコード設定を一時退避
+        String encType = prefs.getString("encoding_type", "UTF-8");
+
+        try {
+            encauto = AozoraEpub3.getTextCharset(srcFile, ext, imageInfoReader, txtIdx);
+            if ("SHIFT_JIS".equals(encauto)) encauto = "MS932";
+        } catch (IOException | RarException e1) {
+            e1.printStackTrace();
+        }
+
+        // 自動判別で取得された文字コード
+        if (encauto == null) encauto = "UTF-8";
+
+        // Preferenceで「AUTO」が指定されている場合
+        if ("AUTO".equals(prefs.getString("encoding_type", "AUTO"))) {
+            encType = encauto;
+        }
+
+        // BookInfo取得
+        BookInfo bookInfo = null;
+        try {
+            if (!imageOnly) {
+                // タイトル形式 (Spinnerなどでintで保存)
+                int titleIndex = prefs.getInt("title_type_index", 0);
+                // 初公開チェックボックス（Booleanで保存）
+                boolean isPubFirst = prefs.getBoolean("publish_first", false);
+
+                bookInfo = AozoraEpub3.getBookInfo(
+                        srcFile, ext, txtIdx, imageInfoReader, this.aozoraConverter,
+                        encType,
+                        BookInfo.TitleType.indexOf(titleIndex),
+                        isPubFirst
+                );
+            }
+        } catch (Exception e) {
+            LogAppender.error("ファイルが読み込めませんでした : "+srcFile.getPath());
+            return;
+        }
+
+        if (convertCanceled) {
+            LogAppender.println("変換処理を中止しました : "+srcFile.getAbsolutePath());
+            return;
+        }
+
+        Epub3Writer writer = this.epub3Writer;
+
+        try {
+            if (!isFile) {
+                if (imageOnly) {
+                    LogAppender.println("画像のみのePubファイルを生成します");
+
+                    bookInfo = new BookInfo(srcFile);
+                    bookInfo.imageOnly = true;
+
+                    writer = this.epub3ImageWriter;
+
+                    if (imageInfoReader.countImageFileInfos() == 0) {
+                        LogAppender.error("画像がありませんでした");
+                        return;
+                    }
+
+                    imageInfoReader.sortImageFileNames();
+
+                    // プログレスバーの最大値設定など
+                    int maxProgress = imageInfoReader.countImageFileInfos() * 11;
+                    jProgressBar.setMax(maxProgress);
+                    jProgressBar.setProgress(0);
+                    jProgressBar.setIndeterminate(false);
+                } else {
+                    if (imageInfoReader.countImageFileNames() == 0) {
+                        coverImageIndex = -1;
+                    }
+
+                    imageInfoReader.addNoNameImageFileName();
+                }
+            }
+        } catch (Exception e) {
+            LogAppender.error(e.getMessage());
+            throw new RuntimeException(e);
+        }
+
+        if (bookInfo == null) {
+            LogAppender.error("書籍の情報が取得できませんでした");
+            return;
+        }
+
+        // プログレスバー設定
+        if (bookInfo.totalLineNum > 0) {
+            int maxProgress;
+            if (isFile) {
+                maxProgress = bookInfo.totalLineNum / 10 + imageInfoReader.countImageFileNames() * 10;
+            } else {
+                maxProgress = bookInfo.totalLineNum / 10 + imageInfoReader.countImageFileInfos() * 10;
+            }
+            jProgressBar.setMax(maxProgress);
+            jProgressBar.setProgress(0);
+            jProgressBar.setIndeterminate(false);
+        }
+
+        // 表紙・目次ページの出力設定
+        bookInfo.insertCoverPage = prefs.getBoolean("insert_cover_page", true);
+        bookInfo.insertTocPage = prefs.getBoolean("insert_toc_page", true);
+        bookInfo.insertCoverPageToc = prefs.getBoolean("insert_coverpage_toc", false);
+        bookInfo.insertTitleToc = prefs.getBoolean("insert_title_toc", true);
+
+        // 表題の見出しが非表示で行が追加されていたら削除
+        if (!bookInfo.insertTitleToc && bookInfo.titleLine >= 0) {
+            bookInfo.removeChapterLineInfo(bookInfo.titleLine);
+        }
+
+        // 目次縦書き設定
+        bookInfo.setTocVertical(prefs.getBoolean("toc_vertical", true));
+
+        // 縦書き or 横書き
+        bookInfo.vertical = prefs.getBoolean("text_vertical", true);
+        aozoraConverter.vertical = bookInfo.vertical;
+
+        // 言語設定（EditTextPreferenceなどから取得）
+        bookInfo.language = prefs.getString("language", "ja").trim();
+
+        // 表題ページの表示形式
+        boolean showTitlePage = prefs.getBoolean("show_title_page", true);
+        if (!showTitlePage) {
+            bookInfo.titlePageType = BookInfo.TITLE_NONE;
+        } else {
+            String titleType = prefs.getString("title_page_type", "normal"); // "normal", "middle", "horizontal"
+            switch (titleType) {
+                case "middle":
+                    bookInfo.titlePageType = BookInfo.TITLE_MIDDLE;
+                    break;
+                case "horizontal":
+                    bookInfo.titlePageType = BookInfo.TITLE_HORIZONTAL;
+                    break;
+                case "normal":
+                default:
+                    bookInfo.titlePageType = BookInfo.TITLE_NORMAL;
+                    break;
+            }
+        }
+
+        // 先頭画像による自動表紙判定
+        if ("".equals(coverFileName) && !imageOnly) {
+            try {
+                int maxCoverLine = Integer.parseInt(prefs.getString("max_cover_line", "20"));
+                if (maxCoverLine > 0 && (bookInfo.firstImageLineNum == -1 || bookInfo.firstImageLineNum >= maxCoverLine)) {
+                    coverImageIndex = -1;
+                    coverFileName = null;
+                } else {
+                    coverImageIndex = bookInfo.firstImageIdx;
+                }
+            } catch (Exception e) {
+                LogAppender.error("max_cover_lineの取得に失敗"+e.getMessage());
+                //Log.w("Cover", "max_cover_lineの取得に失敗", e);
+            }
+        }
+
+        // 表紙情報の設定
+        bookInfo.coverFileName = coverFileName;
+        bookInfo.coverImageIndex = coverImageIndex;
+        bookInfo.svgCoverImage = coverSvg;
+
+        // ファイル名からタイトルと著者名を取得
+        String[] titleCreator = BookInfo.getFileTitleCreator(srcFile.getName());
+        boolean useFileName = prefs.getBoolean("use_file_name", true); // jCheckUseFileName
+
+        if (useFileName) {
+            // ファイル名優先
+            bookInfo.title = titleCreator[0] != null ? titleCreator[0] : "";
+            bookInfo.creator = titleCreator[1] != null ? titleCreator[1] : "";
+        } else {
+            // テキストから取得できなければファイル名を使う
+            if (bookInfo.title == null || bookInfo.title.isEmpty()) {
+                bookInfo.title = titleCreator[0] != null ? titleCreator[0] : "";
+            }
+            if (bookInfo.creator == null || bookInfo.creator.isEmpty()) {
+                bookInfo.creator = titleCreator[1] != null ? titleCreator[1] : "";
+            }
+        }
+
+        // 変換キャンセルされていれば終了
+        if (convertCanceled) {
+            LogAppender.println("変換処理を中止しました : " + srcFile.getAbsolutePath());
+            return;
+        }
+
+        // 過去の変換設定を適用
+        BookInfoHistory history = getBookInfoHistory(bookInfo);
+        if (history != null) {
+            if (bookInfo.title.isEmpty()) bookInfo.title = history.title;
+            bookInfo.titleAs = history.titleAs;
+            if (bookInfo.creator.isEmpty()) bookInfo.creator = history.creator;
+            bookInfo.creatorAs = history.creatorAs;
+            if (bookInfo.publisher == null) bookInfo.publisher = history.publisher;
+
+            boolean useCoverHistory = prefs.getBoolean("use_cover_history", false);
+            boolean showConfirmDialog = prefs.getBoolean("show_confirm_dialog", true);
+
+            if (useCoverHistory) {
+                bookInfo.coverEditInfo = history.coverEditInfo;
+                bookInfo.coverFileName = history.coverFileName;
+                bookInfo.coverExt = history.coverExt;
+                bookInfo.coverImageIndex = history.coverImageIndex;
+
+                // 確認ダイアログを表示しない設定なら自動で画像を生成
+                /* 変換前確認
+                if (!showConfirmDialog && bookInfo.coverEditInfo != null) {
+                    try {
+                        // ここでは ConfirmDialog 相当のロジックに合わせて置換が必要
+                        CoverImageProcessor imageProcessor = new CoverImageProcessor(); // 仮のクラス名
+                        imageProcessor.setBookInfo(bookInfo);
+
+                        if (bookInfo.coverImageIndex >= 0 &&
+                                bookInfo.coverImageIndex < imageInfoReader.countImageFileNames()) {
+                            bookInfo.coverImage = imageInfoReader.getImage(bookInfo.coverImageIndex);
+                        } else if (bookInfo.coverImage == null && bookInfo.coverFileName != null) {
+                            bookInfo.loadCoverImage(bookInfo.coverFileName);
+                        }
+
+                        // 画像をリサイズして加工（coverW, coverHは事前に定義）
+                        bookInfo.coverImage = imageProcessor.getModifiedImage(coverW, coverH);
+
+                    } catch (Exception e) {
+                        throw new RuntimeException("カバー画像の加工に失敗", e);
+                    }
+                }
+                */
+            }
+            // 出力拡張子（例: ".epub" or ".mobi"）
+            String outExt = prefs.getString("output_extension", ".epub").trim();
+
+            // 確認ダイアログ表示するか
+            showConfirmDialog = prefs.getBoolean("show_confirm_dialog", true);
+
+            if (showConfirmDialog) {
+                /*ダイアログ確認
+
+                // 表題と著者の初期値
+                String title = (bookInfo.title != null) ? bookInfo.title : "";
+                String creator = (bookInfo.creator != null) ? bookInfo.creator : "";
+
+                // 章設定
+                boolean chapterSection = prefs.getBoolean("chapter_section", false);
+                boolean chapterH = prefs.getBoolean("chapter_h", false);
+                boolean chapterH1 = prefs.getBoolean("chapter_h1", false);
+                boolean chapterH2 = prefs.getBoolean("chapter_h2", false);
+                boolean chapterH3 = prefs.getBoolean("chapter_h3", false);
+                boolean chapterName = prefs.getBoolean("chapter_name", false);
+                boolean chapterNumbering = prefs.getBoolean("chapter_numbering", false);
+                boolean chapterPattern = prefs.getBoolean("chapter_pattern", false);
+
+                // 表題スタイルや出版社名先頭表示
+                int titleStyleIndex = prefs.getInt("title_style_index", 0);
+                boolean pubFirst = prefs.getBoolean("publish_first", false);
+
+                // Android用の確認ダイアログフラグメントに変換
+                ConfirmDialogFragment dialog = ConfirmDialogFragment.newInstance(
+                        srcFile,
+                        (dstPath != null ? dstPath.getAbsolutePath() : srcFile.getParent()),
+                        title,
+                        creator,
+                        titleStyleIndex,
+                        pubFirst,
+                        bookInfo,
+                        imageInfoReader,
+                        coverW,
+                        coverH,
+                        chapterSection, chapterH, chapterH1, chapterH2, chapterH3, chapterName, chapterNumbering, chapterPattern
+                );
+
+                dialog.setOnConfirmResultListener(new ConfirmDialogFragment.OnConfirmResultListener() {
+                    @Override
+                    public void onConfirmed(BookInfo updatedInfo, @Nullable Bitmap coverBitmap, boolean skipped, boolean canceled, boolean rememberConfirm) {
+                        if (canceled) {
+                            convertCanceled = true;
+                            LogAppender.println("変換処理を中止しました : " + srcFile.getAbsolutePath());
+                            return;
+                        }
+                        if (skipped) {
+                            setBookInfoHistory(updatedInfo);
+                            LogAppender.println("変換をスキップしました : " + srcFile.getAbsolutePath());
+                            return;
+                        }
+
+                        // 確認不要にする設定を保存
+                        prefs.edit().putBoolean("show_confirm_dialog", rememberConfirm).apply();
+
+                        // 情報を反映
+                        bookInfo.title = updatedInfo.title;
+                        bookInfo.creator = updatedInfo.creator;
+                        bookInfo.titleAs = updatedInfo.titleAs;
+                        bookInfo.creatorAs = updatedInfo.creatorAs;
+                        bookInfo.publisher = updatedInfo.publisher;
+
+                        if (bookInfo.creator.isEmpty()) {
+                            bookInfo.creatorLine = -1;
+                        }
+
+                        // 表紙画像（Bitmap → BufferedImage 変換が必要な場合も）
+                        if (coverBitmap != null) {
+                            bookInfo.coverImage = ImageUtil.convertBitmapToBufferedImage(coverBitmap); // ヘルパーメソッドで変換
+                            if (updatedInfo.coverImageIndex == -1) {
+                                bookInfo.coverImageIndex = -1;
+                            }
+                        } else {
+                            bookInfo.coverImage = null;
+                        }
+
+                        setBookInfoHistory(bookInfo);
+                    }
+                });
+
+                dialog.show(((AppCompatActivity) context).getSupportFragmentManager(), "confirm_dialog");
+                */
+
+            } else {
+                // 表題の見出しを削除（タイトルTOCが不要な場合）
+                if (!bookInfo.insertTitleToc && bookInfo.titleLine >= 0) {
+                    bookInfo.removeChapterLineInfo(bookInfo.titleLine);
+                }
+            }
+            // 設定の読み込み
+            boolean autoFileName = prefs.getBoolean("auto_file_name", true);
+            boolean overWrite = prefs.getBoolean("overwrite_output", false);
+
+// 出力ファイル
+            File outFile;
+            File outFileOrg = null;
+
+            outFile = AozoraEpub3.getOutFile(srcFile, dstPath, bookInfo, autoFileName, outExt);
+
+            if (!overWrite && outFile.exists()) {
+                LogAppender.println("変換中止: " + srcFile.getAbsolutePath());
+                LogAppender.println("ファイルが存在します: " + outFile.getAbsolutePath());
+                return;
+            }
+            // 変換実行
+            AozoraEpub3.convertFile(
+                    srcFile, ext, outFile,
+                    aozoraConverter,
+                    writer,
+                    encType,
+                    bookInfo, imageInfoReader, txtIdx
+            );
+
+// 設定を戻す（UIがないので必要なければ省略）
+            imageInfoReader = null;
+            bookInfo.coverImage = null;
+
+// 変換中止された場合
+            if (convertCanceled) {
+                LogAppender.println("変換処理を中止しました : " + srcFile.getAbsolutePath());
+                return;
+            }
+        }
+
+    }
+
+    private boolean isCacheFile(File file, Context context) {
+        try {
+            File cacheDir = context.getCacheDir(); // Android のキャッシュパス
+            return file.getCanonicalPath().startsWith(cacheDir.getCanonicalPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    ////////////////////////////////////////////////////////////////
+    //変換履歴
+    ////////////////////////////////////////////////////////////////
+    /** 変換履歴格納用 最大255件 */
+    LinkedHashMap<String, BookInfoHistory> mapBookInfoHistory = new LinkedHashMap<String, BookInfoHistory>(){
+        @Serial
+        private static final long serialVersionUID = 1L;
+        @SuppressWarnings("rawtypes")
+        protected boolean removeEldestEntry(Map.Entry eldest) { return size() > 256; }
+    };
+    //以前の変換情報取得
+    BookInfoHistory getBookInfoHistory(BookInfo bookInfo)
+    {
+        String key = bookInfo.srcFile.getAbsolutePath();
+        if (bookInfo.textEntryName != null) key += "/"+bookInfo.textEntryName;
+        return mapBookInfoHistory.get(key);
+    }
+
+    void setBookInfoHistory(BookInfo bookInfo)
+    {
+        String key = bookInfo.srcFile.getAbsolutePath();
+        if (bookInfo.textEntryName != null) key += "/"+bookInfo.textEntryName;
+        mapBookInfoHistory.put(key, new BookInfoHistory(bookInfo));
+    }
 }
