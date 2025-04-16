@@ -868,10 +868,11 @@
         <CheckBoxPreference
             android:key="WebBeforeChapter"
             android:title="最新"
-            android:summary="最新話から指定話数のみ出力します" />
+            android:summary="最新話から指定話数のみ出力します"
+            android:defaultValue="false"/>
 
         <EditTextPreference
-            android:key="WebBeforeChapter"
+            android:key="WebBeforeChapterCount"
             android:title="出力話数"
             android:summary="最新話からの出力数"
             android:defaultValue="1"
@@ -880,12 +881,14 @@
         <CheckBoxPreference
             android:key="WebModifiedOnly"
             android:title="更新分"
-            android:summary="追加更新のあった話のみ変換します" />
+            android:summary="追加更新のあった話のみ変換します"
+            android:defaultValue="false"/>
 
         <CheckBoxPreference
             android:key="WebModifiedTail"
             android:title="連続"
-            android:summary="最新話から連続した更新分のみ変換します" />
+            android:summary="最新話から連続した更新分のみ変換します"
+            android:defaultValue="false"/>
     </PreferenceCategory>
 
 </PreferenceScreen>
