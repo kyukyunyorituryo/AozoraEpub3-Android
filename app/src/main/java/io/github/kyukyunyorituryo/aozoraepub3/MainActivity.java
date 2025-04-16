@@ -104,8 +104,6 @@ public class MainActivity extends AppCompatActivity {
         LogAppender.append("  /  "+System.getProperty("os.name"));
         LogAppender.append(" )\n対応ファイル: 青空文庫txt(txt,zip,rar), 画像(zip,rar,cbz)");
 
-        //preferenceの取得
-        getPreferenceValues();
 
         //プロパティーの読み込み
         props = new Properties();
@@ -136,213 +134,7 @@ public class MainActivity extends AppCompatActivity {
         handleIntent(getIntent());
     }
     //preferenceの取得
-    private void getPreferenceValues() {
 
-        // 設定値を取得する例
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String titleType = prefs.getString("title_type", "0");
-        boolean pubFirst = prefs.getBoolean("pub_first", false);
-        boolean useFilename = prefs.getBoolean("use_filename", false);
-        int maxCoverLines;
-        try {
-            maxCoverLines = Integer.parseInt(prefs.getString("max_cover_lines", "10"));
-        } catch (NumberFormatException e) {
-            maxCoverLines = 10;
-        }
-
-        String coverMode = prefs.getString("cover_mode", "0");
-        boolean useCoverHistory = prefs.getBoolean("use_cover_history", true);
-        boolean outputCoverPage = prefs.getBoolean("output_cover_page", true);
-        boolean outputTitlePage = prefs.getBoolean("output_title_page", true);
-        String titlePageStyle = prefs.getString("title_page_style", "middle");
-        boolean outputToc = prefs.getBoolean("output_toc", true);
-        String tocStyle = prefs.getString("toc_style", "vertical");
-        String fileExtension = prefs.getString("file_extension", ".epub");
-        boolean useTitleForFilename = prefs.getBoolean("use_title_for_filename", true);
-        boolean overwriteOutput = prefs.getBoolean("overwrite_output", true);
-
-        // 出力先
-        boolean samePath = prefs.getBoolean("same_path", true);
-        String outputPath = prefs.getString("output_path", "");
-        // 変換設定
-        String inputEncoding = prefs.getString("input_encoding", "AUTO");
-        String language = prefs.getString("language", "ja");
-        String textDirection = prefs.getString("text_direction", "vertical");
-        // 挿絵除外
-        boolean excludeIllustrations = prefs.getBoolean("exclude_illustrations", false);
-        // 画面・表紙サイズ
-        int screenWidth = Integer.parseInt(prefs.getString("screen_width", "1600"));
-        int screenHeight = Integer.parseInt(prefs.getString("screen_height", "2560"));
-        int coverWidth = Integer.parseInt(prefs.getString("cover_width", "0"));
-        int coverHeight = Integer.parseInt(prefs.getString("cover_height", "0"));
-        // 画像倍率
-        boolean imageScaleEnabled = prefs.getBoolean("image_scale_enabled", true);
-        float imageScaleFactor = Float.parseFloat(prefs.getString("image_scale_factor", "1.0"));
-
-
-        // 画像回り込み
-        boolean imageFloatEnabled = prefs.getBoolean("image_float_enabled", false);
-        int imageFloatWidth = Integer.parseInt(prefs.getString("image_float_width", "600"));
-        int imageFloatHeight = Integer.parseInt(prefs.getString("image_float_height", "400"));
-        String imageFloatPosition = prefs.getString("image_float_position", "上/左");
-
-        // 画像単ページ化
-        int singlePageWidth = Integer.parseInt(prefs.getString("single_page_width", "200"));
-        int singlePageHeight = Integer.parseInt(prefs.getString("single_page_height", "300"));
-        int singlePageWidthOnly = Integer.parseInt(prefs.getString("single_page_width_only", "300"));
-        String imageSizeMode = prefs.getString("image_size_mode", "none");
-        boolean fitImage = prefs.getBoolean("fit_image", true);
-
-        // Float指定 (Readerのみ)
-        boolean floatImageSinglePage = prefs.getBoolean("float_image_single_page", false);
-        boolean floatImageBlock = prefs.getBoolean("float_image_block", false);
-
-        // 全画面表示
-        boolean outputSvg = prefs.getBoolean("output_svg", false);
-
-        // Jpeg圧縮率
-        int jpegQuality = Integer.parseInt(prefs.getString("jpeg_quality", "100")); // default: 100
-
-        // 色調整
-        boolean gammaCorrection = prefs.getBoolean("gamma_correction", false);
-        float gammaValue = Float.parseFloat(prefs.getString("gamma_value", "1.0")); // default: 1.0
-
-        // --- 余白除去 ---
-        boolean autoMarginEnabled = prefs.getBoolean("auto_margin_enabled", false);
-        int autoMarginLimitH = Integer.parseInt(prefs.getString("auto_margin_limit_h", "15"));
-        int autoMarginLimitV = Integer.parseInt(prefs.getString("auto_margin_limit_v", "15"));
-        float autoMarginPadding = Float.parseFloat(prefs.getString("auto_margin_padding", "1.0"));
-        int autoMarginWhiteLevel = Integer.parseInt(prefs.getString("auto_margin_white_level", "80"));
-        String autoMarginNombrePosition = prefs.getString("auto_margin_nombre_position", "none");
-        float autoMarginNombreSize = Float.parseFloat(prefs.getString("auto_margin_nombre_size", "3.0"));
-
-        // --- 文中全角スペースの処理 ---
-        String spaceHandling = prefs.getString("space_handling", "default");
-
-        // --- 「○○」に「××」の注記 ---
-        String annotationHandling = prefs.getString("annotation_handling", "0");
-
-        // --- 自動縦中横 ---
-        boolean enableAutoYoko = prefs.getBoolean("enable_auto_yoko", true);
-        boolean autoYokoNum1 = prefs.getBoolean("auto_yoko_num1", false);
-        boolean autoYokoNum3 = prefs.getBoolean("auto_yoko_num3", false);
-        boolean autoEq1 = prefs.getBoolean("auto_eq1", false);
-
-        // --- コメントブロック出力 ---
-        boolean commentOutput = prefs.getBoolean("comment_output", false);
-        boolean commentConvert = prefs.getBoolean("comment_convert", false);
-
-
-        // --- 栞用ID ---
-        boolean markId = prefs.getBoolean("mark_id", false);
-
-        // --- 空行除去 ---
-        String removeEmptyLine = prefs.getString("remove_empty_line", "0");
-        String maxEmptyLine = prefs.getString("max_empty_line", "-");
-
-        // --- 行頭字下げ ---
-        boolean forceIndent = prefs.getBoolean("force_indent", false);
-
-        // --- 強制改ページ ---
-        boolean pageBreakEnabled = prefs.getBoolean("page_break_enabled", true);
-        int pageBreakSizeKb = Integer.parseInt(prefs.getString("page_break_size_kb", "400"));
-
-        boolean pageBreakEmptyEnabled = prefs.getBoolean("page_break_empty_enabled", false);
-        String pageBreakEmptyLineCount = prefs.getString("page_break_empty_line_count", "2");
-        int pageBreakEmptySizeKb = Integer.parseInt(prefs.getString("page_break_empty_size_kb", "300"));
-
-        boolean pageBreakChapterEnabled = prefs.getBoolean("page_break_chapter_enabled", false);
-        int pageBreakChapterSizeKb = Integer.parseInt(prefs.getString("page_break_chapter_size_kb", "200"));
-
-
-        // --- 目次設定 ---
-        int maxChapterNameLength = Integer.parseInt(prefs.getString("max_chapter_name_length", "64"));
-
-        boolean tocIncludeCover = prefs.getBoolean("toc_include_cover", false);
-        boolean tocIncludeTitle = prefs.getBoolean("toc_include_title", true);
-        boolean tocJoinNextLine = prefs.getBoolean("toc_join_next_line", false);
-        boolean tocExcludeRepeated = prefs.getBoolean("toc_exclude_repeated", true);
-        boolean navNested = prefs.getBoolean("nav_nested", true);
-        boolean ncxNested = prefs.getBoolean("ncx_nested", true);
-
-        // --- 目次抽出 ---
-        boolean chapterHead = prefs.getBoolean("chapter_head", true);
-        boolean chapterHead1 = prefs.getBoolean("chapter_head1", true);
-        boolean chapterHead2 = prefs.getBoolean("chapter_head2", true);
-        boolean chapterHead3 = prefs.getBoolean("chapter_head3", true);
-        boolean chapterSameLine = prefs.getBoolean("chapter_same_line", false);
-        boolean chapterAfterPagebreak = prefs.getBoolean("chapter_after_pagebreak", true);
-        boolean chapterName = prefs.getBoolean("chapter_name", true);
-
-
-        // --- 数字系 ---
-        boolean chapterNumOnly = prefs.getBoolean("chapter_num_only", false);
-        boolean chapterNumTitle = prefs.getBoolean("chapter_num_title", false);
-        boolean chapterNumParen = prefs.getBoolean("chapter_num_paren", false);
-        boolean chapterNumParenTitle = prefs.getBoolean("chapter_num_paren_title", false);
-        boolean chapterPatternEnabled = prefs.getBoolean("chapter_pattern_enabled", false);
-        String chapterPattern = prefs.getString("chapter_pattern", "^(見出し１|見出し２|見出し３)$");
-
-        // --- スタイル ---
-        float lineHeight = Float.parseFloat(prefs.getString("line_height", "1.8"));
-        int fontSize = Integer.parseInt(prefs.getString("font_size", "100"));
-
-        // --- 太字ゴシック表示 ---
-        boolean boldNote = prefs.getBoolean("bold_note", false);
-        boolean gothicNote = prefs.getBoolean("gothic_note", false);
-
-        // --- テキスト余白 ---
-        float pageMarginTop = Float.parseFloat(prefs.getString("page_margin_top", "0.5"));
-        float pageMarginRight = Float.parseFloat(prefs.getString("page_margin_right", "0.5"));
-        float pageMarginBottom = Float.parseFloat(prefs.getString("page_margin_bottom", "0.5"));
-        float pageMarginLeft = Float.parseFloat(prefs.getString("page_margin_left", "0.5"));
-        String pageMarginUnit = prefs.getString("page_margin_unit", "char");
-
-
-        // --- テキスト余白 (html margin) Reader用 ---
-        float bodyMarginTop = Float.parseFloat(prefs.getString("body_margin_top", "0"));
-        float bodyMarginRight = Float.parseFloat(prefs.getString("body_margin_right", "0"));
-        float bodyMarginBottom = Float.parseFloat(prefs.getString("body_margin_bottom", "0"));
-        float bodyMarginLeft = Float.parseFloat(prefs.getString("body_margin_left", "0"));
-        String bodyMarginUnit = prefs.getString("body_margin_unit", "char");
-
-        // --- 文字出力 ---
-        String dakutenOutputType = prefs.getString("dakuten_output_type", "font");
-
-        // --- IVS出力 ---
-        boolean ivsBmp = prefs.getBoolean("ivs_bmp", false);
-        boolean ivsSsp = prefs.getBoolean("ivs_ssp", false);
-
-        // --- Web取得設定 ---
-        float webInterval = Float.parseFloat(prefs.getString("web_interval", "0.5"));
-
-        // --- UA設定 ---
-        String uaType = prefs.getString("ua_type", "");
-
-        // --- Web画像設定 ---
-        boolean webLargeImage = prefs.getBoolean("web_large_image", false);
-
-        // --- キャッシュ保存パス ---
-        String cachePath = prefs.getString("cache_path", ".cache");
-
-        // --- 更新判定 ---
-        int webModifiedExpire = Integer.parseInt(prefs.getString("web_modified_expire", "24"));
-
-
-        // --- ePub出力設定 ---
-        boolean webConvertUpdatedOnly = prefs.getBoolean("web_convert_updated_only", false);
-
-        // --- 変換対象 ---
-        boolean webLatestOnly = prefs.getBoolean("web_latest_only", false);
-        int webLatestCount = Integer.parseInt(prefs.getString("web_latest_count", "1"));
-        boolean webModifiedOnly = prefs.getBoolean("web_modified_only", false);
-        boolean webModifiedTailOnly = prefs.getBoolean("web_modified_tail_only", false);
-
-
-
-
-
-    }
     /** Intent から URL を取得して処理 */
     private void handleIntent(Intent intent) {
         if (intent == null) return;
@@ -469,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
     private void processFile() {
         //File inputFile = new File(getFilesDir(), "input.txt");
         //File outputFile = new File(getFilesDir(), "output.txt");
-
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         if (!srcFile.exists() || srcFile.length() == 0) {
             Toast.makeText(this, "入力ファイルが存在しないか空です", Toast.LENGTH_SHORT).show();
             return;
@@ -486,24 +278,24 @@ public class MainActivity extends AppCompatActivity {
         epub3ImageWriter = new Epub3ImageWriter(this);
         int titleIndex = 0; //try { titleIndex = Integer.parseInt(props.getProperty("TitleType")); } catch (Exception e) {}//表題
         //コマンドラインオプション以外
-        boolean coverPage = "1".equals(props.getProperty("CoverPage"));//表紙追加
+        boolean coverPage = prefs.getBoolean("CoverPage", true);//表紙追加
         int titlePage = BookInfo.TITLE_NONE;
-        if ("1".equals(props.getProperty("TitlePageWrite"))) {
-            try { titlePage =Integer.parseInt(props.getProperty("TitlePage")); } catch (Exception e) {}
+        if (prefs.getBoolean("TitlePageWrite", true)) {
+            try { titlePage =Integer.parseInt(prefs.getString("TitlePage", "1")); } catch (Exception e) {}
         }
 
-        boolean withMarkId = "1".equals(props.getProperty("MarkId"));
+        boolean withMarkId = prefs.getBoolean("MarkId", false);
         //boolean gaiji32 = "1".equals(props.getProperty("Gaiji32"));
-        boolean commentPrint = "1".equals(props.getProperty("CommentPrint"));
-        boolean commentConvert = "1".equals(props.getProperty("CommentConvert"));
-        boolean autoYoko = "1".equals(props.getProperty("AutoYoko"));
-        boolean autoYokoNum1 = "1".equals(props.getProperty("AutoYokoNum1"));
-        boolean autoYokoNum3 = "1".equals(props.getProperty("AutoYokoNum3"));
-        boolean autoYokoEQ1 = "1".equals(props.getProperty("AutoYokoEQ1"));
-        int spaceHyp = 0; try { spaceHyp = Integer.parseInt(props.getProperty("SpaceHyphenation")); } catch (Exception e) {}
-        boolean tocPage = "1".equals(props.getProperty("TocPage"));//目次追加
-        boolean tocVertical = "1".equals(props.getProperty("TocVertical"));//目次縦書き
-        boolean coverPageToc = "1".equals(props.getProperty("CoverPageToc"));
+        boolean commentPrint = prefs.getBoolean("CommentPrint", false);
+        boolean commentConvert = prefs.getBoolean("CommentConvert", false);
+        boolean autoYoko = prefs.getBoolean("AutoYoko", true);
+        boolean autoYokoNum1 =  prefs.getBoolean("AutoYokoNum1", false);
+        boolean autoYokoNum3 = prefs.getBoolean("AutoYokoNum3", false);
+        boolean autoYokoEQ1 = prefs.getBoolean("AutoYokoEQ1", false);
+        int spaceHyp = 0; try { spaceHyp = Integer.parseInt(prefs.getString("SpaceHyphenation", "0")); } catch (Exception e) {}
+        boolean tocPage = prefs.getBoolean("TocPage", true);//目次追加
+        boolean tocVertical = "vertical".equals(prefs.getString("TocVertical", "vertical"));//目次縦書き
+        boolean coverPageToc =  prefs.getBoolean("CoverPageToc", false);
         int removeEmptyLine = 0; try { removeEmptyLine = Integer.parseInt(props.getProperty("RemoveEmptyLine")); } catch (Exception e) {}
         int maxEmptyLine = 0; try { maxEmptyLine = Integer.parseInt(props.getProperty("MaxEmptyLine")); } catch (Exception e) {}
 
