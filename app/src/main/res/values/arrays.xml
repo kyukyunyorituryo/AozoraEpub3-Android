@@ -37,9 +37,9 @@
         <item>横書き</item>
     </string-array>
     <string-array name="title_page_styles_values">
-        <item>normal</item>
-        <item>middle</item>
-        <item>horizontal</item>
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
     </string-array>
 
     <string-array name="toc_styles">
@@ -256,7 +256,7 @@
         <item>Firefox</item>
     </string-array>
     <string-array name="ua_values">
-        <item></item>
+        <item> </item>
         <item>Chrome</item>
         <item>Safari</item>
         <item>Firefox</item>
