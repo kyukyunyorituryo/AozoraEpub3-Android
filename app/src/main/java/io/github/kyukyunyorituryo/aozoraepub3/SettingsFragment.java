@@ -13,8 +13,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.preferences, rootKey);
-        EditTextPreference imageScalePref = findPreference("image_scale_factor");
-        CheckBoxPreference scaleEnabled = findPreference("image_scale_enabled");
+        EditTextPreference imageScalePref = findPreference("ImageScale");
+        CheckBoxPreference scaleEnabled = findPreference("ImageScaleChecked");
 
         if (scaleEnabled != null && imageScalePref != null) {
             imageScalePref.setEnabled(scaleEnabled.isChecked());
@@ -27,8 +27,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         }
 
         // 例: gamma_correction によって gamma_value を有効/無効化
-        CheckBoxPreference gammaCheck = findPreference("gamma_correction");
-        EditTextPreference gammaValue = findPreference("gamma_value");
+        CheckBoxPreference gammaCheck = findPreference("Gamma");
+        EditTextPreference gammaValue = findPreference("GammaValue");
 
         if (gammaCheck != null && gammaValue != null) {
             gammaValue.setEnabled(gammaCheck.isChecked());
@@ -39,14 +39,14 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         }
 
         SwitchPreferenceCompat switchAutoMargin =
-                findPreference("auto_margin_enabled");
+                findPreference("AutoMargin");
 
         String[] dependentKeys = new String[]{
-                "auto_margin_limit_h",
-                "auto_margin_limit_v",
-                "auto_margin_padding",
-                "auto_margin_white_level",
-                "auto_margin_nombre_size"
+                "AutoMarginLimitH",
+                "AutoMarginLimitV",
+                "AutoMarginPadding",
+                "AutoMarginWhiteLevel",
+                "AutoMarginNombreSize"
         };
 
         if (switchAutoMargin != null) {
