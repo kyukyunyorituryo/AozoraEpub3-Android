@@ -141,9 +141,9 @@
         <!--
         <Preference
             app:key="select_file"
-            app:titl-->e="ファイル選択"
+            app:title="ファイル選択"
             app:summary="ファイルを選択して変換を開始"
-            />
+            />-->
     </PreferenceCategory>
 
     <!-- 挿絵除外 -->
