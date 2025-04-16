@@ -62,7 +62,7 @@
             app:title="表題ページスタイル"
             app:entries="@array/title_page_styles"
             app:entryValues="@array/title_page_styles_values"
-            android:defaultValue="middle" />
+            android:defaultValue="1" />
 
         <CheckBoxPreference
             app:key="TocPage"
@@ -396,11 +396,11 @@
     <!-- 文中全角スペースの処理 -->
     <PreferenceCategory android:title="文中全角スペースの処理">
         <ListPreference
-            android:key="sSpaceHyphenation"
+            android:key="SpaceHyphenation"
             android:title="行末で非表示"
             android:entries="@array/space_handling_entries"
             android:entryValues="@array/space_handling_values"
-            android:defaultValue="default"
+            android:defaultValue="0"
             android:summary="%s" />
     </PreferenceCategory>
 
