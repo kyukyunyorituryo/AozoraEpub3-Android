@@ -95,8 +95,8 @@
         <item>下/右</item>
     </string-array>
     <string-array name="image_float_position_values">
-        <item>top_left</item>
-        <item>bottom_right</item>
+        <item>1</item>
+        <item>2</item>
     </string-array>
 
     <string-array name="image_size_mode_entries">
@@ -104,8 +104,8 @@
         <item>縦横比</item>
     </string-array>
     <string-array name="image_size_mode_values">
-        <item>none</item>
-        <item>aspect_ratio</item>
+        <item>1</item>
+        <item>3</item>
     </string-array>
     <string-array name="rotate_options">
         <item>なし</item>
@@ -113,9 +113,9 @@
         <item>左</item>
     </string-array>
     <string-array name="rotate_values">
-        <item>none</item>
-        <item>right</item>
-        <item>left</item>
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
     </string-array>
     <string-array name="nombre_position_entries">
         <item>なし</item>
