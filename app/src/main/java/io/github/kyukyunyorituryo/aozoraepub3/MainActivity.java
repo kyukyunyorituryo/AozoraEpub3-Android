@@ -296,29 +296,33 @@ public class MainActivity extends AppCompatActivity {
         boolean tocPage = prefs.getBoolean("TocPage", true);//目次追加
         boolean tocVertical = "vertical".equals(prefs.getString("TocVertical", "vertical"));//目次縦書き
         boolean coverPageToc =  prefs.getBoolean("CoverPageToc", false);
-        int removeEmptyLine = 0; try { removeEmptyLine = Integer.parseInt(props.getProperty("RemoveEmptyLine")); } catch (Exception e) {}
-        int maxEmptyLine = 0; try { maxEmptyLine = Integer.parseInt(props.getProperty("MaxEmptyLine")); } catch (Exception e) {}
+        int removeEmptyLine = 0; try { removeEmptyLine = Integer.parseInt(prefs.getString("RemoveEmptyLine", "0")); } catch (Exception e) {}
+        int maxEmptyLine = 0; try { maxEmptyLine = Integer.parseInt(prefs.getString("MaxEmptyLine", "0")); } catch (Exception e) {}
 
         //画面サイズと画像リサイズ
-        int dispW = 600; try { dispW =Integer.parseInt(props.getProperty("DispW")); } catch (Exception e) {}
-        int dispH = 800; try { dispH =Integer.parseInt(props.getProperty("DispH")); } catch (Exception e) {}
-        int coverW = 600; try { coverW = Integer.parseInt(props.getProperty("CoverW")); } catch (Exception e) {}
-        int coverH = 800; try { coverH = Integer.parseInt(props.getProperty("CoverH")); } catch (Exception e) {}
-        int resizeW = 0; if ("1".equals(props.getProperty("ResizeW"))) try { resizeW = Integer.parseInt(props.getProperty("ResizeNumW")); } catch (Exception e) {}
-        int resizeH = 0; if ("1".equals(props.getProperty("ResizeH"))) try { resizeH = Integer.parseInt(props.getProperty("ResizeNumH")); } catch (Exception e) {}
-        int singlePageSizeW = 480; try { singlePageSizeW = Integer.parseInt(props.getProperty("SinglePageSizeW")); } catch (Exception e) {}
-        int singlePageSizeH = 640; try { singlePageSizeH = Integer.parseInt(props.getProperty("SinglePageSizeH")); } catch (Exception e) {}
-        int singlePageWidth = 600; try { singlePageWidth = Integer.parseInt(props.getProperty("SinglePageWidth")); } catch (Exception e) {}
-        float imageScale = 1; try { imageScale = Float.parseFloat(props.getProperty("ImageScale")); } catch (Exception e) {}
-        int imageFloatType = 0; try { imageFloatType = Integer.parseInt(props.getProperty("ImageFloatType")); } catch (Exception e) {}
-        int imageFloatW = 0; try { imageFloatW = Integer.parseInt(props.getProperty("ImageFloatW")); } catch (Exception e) {}
-        int imageFloatH = 0; try { imageFloatH = Integer.parseInt(props.getProperty("ImageFloatH")); } catch (Exception e) {}
-        int imageSizeType = SectionInfo.IMAGE_SIZE_TYPE_HEIGHT; try { imageSizeType = Integer.parseInt(props.getProperty("ImageSizeType")); } catch (Exception e) {}
-        boolean fitImage = "1".equals(props.getProperty("FitImage"));
-        boolean svgImage = "1".equals(props.getProperty("SvgImage"));
-        int rotateImage = 0; if ("1".equals(props.getProperty("RotateImage"))) rotateImage = 90; else if ("2".equals(props.getProperty("RotateImage"))) rotateImage = -90;
-        float jpegQualty = 0.8f; try { jpegQualty = Integer.parseInt(props.getProperty("JpegQuality"))/100f; } catch (Exception e) {}
-        float gamma = 1.0f; if ( "1".equals(props.getProperty("Gamma"))) try { gamma = Float.parseFloat(props.getProperty("GammaValue")); } catch (Exception e) {}
+        int dispW = 600; try { dispW = Integer.parseInt(prefs.getString("DispW", "600")); } catch (Exception e) {}
+        int dispH = 800; try { dispH = Integer.parseInt(prefs.getString("DispH", "800"));  } catch (Exception e) {}
+        int coverW = 600; try { coverW = Integer.parseInt(prefs.getString("CoverW", "600")); } catch (Exception e) {}
+        int coverH = 800; try { coverH = Integer.parseInt(prefs.getString("CoverH", "800")); } catch (Exception e) {}
+        int resizeW = 0; if (prefs.getBoolean("ResizeW", false)) try { resizeW = Integer.parseInt(prefs.getString("ResizeNumW", "2048")); } catch (Exception e) {}
+        int resizeH = 0; if (prefs.getBoolean("ResizeH", false)) try { resizeH = Integer.parseInt(prefs.getString("ResizeNumH", "2048")); } catch (Exception e) {}
+        int singlePageSizeW = 480; try { singlePageSizeW = Integer.parseInt(prefs.getString("SinglePageSizeW", "200")); } catch (Exception e) {}
+        int singlePageSizeH = 640; try { singlePageSizeH = Integer.parseInt(prefs.getString("SinglePageSizeH", "300")); } catch (Exception e) {}
+        int singlePageWidth = 600; try { singlePageWidth = Integer.parseInt(prefs.getString("SinglePageWidth", "300")); } catch (Exception e) {}
+        float imageScale = 1; try { imageScale = Float.parseFloat(prefs.getString("ImageScale", "1.0")); } catch (Exception e) {}
+        int imageFloatType = 0;
+        try { if(prefs.getBoolean("ImageFloat", false)) {
+            imageFloatType = 0;
+        } else   { imageFloatType = Integer.parseInt(prefs.getString("ImageFloatType", "1"));            }
+           }catch (Exception e) {}
+        int imageFloatW = 0; try { imageFloatW = Integer.parseInt(prefs.getString("ImageFloatW", "600")); } catch (Exception e) {}
+        int imageFloatH = 0; try { imageFloatH = Integer.parseInt(prefs.getString("ImageFloatH", "400")); } catch (Exception e) {}
+        int imageSizeType = SectionInfo.IMAGE_SIZE_TYPE_HEIGHT; try { imageSizeType = Integer.parseInt(prefs.getString("ImageSizeType", "1")); } catch (Exception e) {}
+        boolean fitImage = prefs.getBoolean("FitImage", true);
+        boolean svgImage = prefs.getBoolean("SvgImage", false);
+        int rotateImage = 0; if ("1".equals(prefs.getString("RotateImage", "0"))) rotateImage = 90; else if ("2".equals(prefs.getString("RotateImage", "0"))) rotateImage = -90;
+        float jpegQualty = 0.8f; try { jpegQualty = Integer.parseInt(prefs.getString("JpegQuality", "85"))/100f; } catch (Exception e) {}
+        float gamma = 1.0f; if ( prefs.getBoolean("Gamma", false)) try { gamma = Float.parseFloat(prefs.getString("GammaValue", "")); } catch (Exception e) {}
         int autoMarginLimitH = 0;
         int autoMarginLimitV = 0;
         int autoMarginWhiteLevel = 80;
