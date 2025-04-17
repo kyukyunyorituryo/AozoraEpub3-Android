@@ -223,7 +223,7 @@
         <ListPreference
             app:key="ImageFloatType"
             app:title="配置"
-            android:defaultValue="上/左"
+            android:defaultValue="1"
             app:entries="@array/image_float_position_entries"
             app:entryValues="@array/image_float_position_values" />
     </PreferenceCategory>
