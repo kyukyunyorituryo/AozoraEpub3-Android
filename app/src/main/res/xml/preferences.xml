@@ -748,7 +748,7 @@
             android:title="単位"
             android:entries="@array/margin_units"
             android:entryValues="@array/margin_units_values"
-            android:defaultValue="char" />
+            android:defaultValue="em" />
     </PreferenceCategory>
 
     <!-- テキスト余白 (html margin) Reader用 -->
