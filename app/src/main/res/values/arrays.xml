@@ -124,10 +124,10 @@
         <item>上下</item>
     </string-array>
     <string-array name="nombre_position_values">
-        <item>none</item>
-        <item>top</item>
-        <item>bottom</item>
-        <item>both</item>
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
     </string-array>
     <string-array name="space_handling_entries">
     <item>Kobo・Kindle</item>
@@ -235,8 +235,8 @@
         <item>%</item>
     </string-array>
     <string-array name="margin_units_values">
-        <item>char</item>
-        <item>percent</item>
+        <item>em</item>
+        <item>%</item>
     </string-array>
     <string-array name="dakuten_output_options">
         <item>そのまま</item>
