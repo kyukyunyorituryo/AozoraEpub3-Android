@@ -329,13 +329,13 @@ public class MainActivity extends AppCompatActivity {
         float autoMarginPadding = 0;
         int autoMarginNombre = 0;
         float nobreSize = 0.03f;
-        if ("1".equals(props.getProperty("AutoMargin"))) {
-            try { autoMarginLimitH = Integer.parseInt(props.getProperty("AutoMarginLimitH")); } catch (Exception e) {}
-            try { autoMarginLimitV = Integer.parseInt(props.getProperty("AutoMarginLimitV")); } catch (Exception e) {}
-            try { autoMarginWhiteLevel = Integer.parseInt(props.getProperty("AutoMarginWhiteLevel")); } catch (Exception e) {}
-            try { autoMarginPadding = Float.parseFloat(props.getProperty("AutoMarginPadding")); } catch (Exception e) {}
-            try { autoMarginNombre = Integer.parseInt(props.getProperty("AutoMarginNombre")); } catch (Exception e) {}
-            try { autoMarginPadding = Float.parseFloat(props.getProperty("AutoMarginNombreSize")); } catch (Exception e) {}
+        if (prefs.getBoolean("AutoMargin", false)) {
+            try { autoMarginLimitH = Integer.parseInt(prefs.getString("AutoMarginLimitH", "15")); } catch (Exception e) {}
+            try { autoMarginLimitV = Integer.parseInt(prefs.getString("AutoMarginLimitV", "15")); } catch (Exception e) {}
+            try { autoMarginWhiteLevel = Integer.parseInt(prefs.getString("AutoMarginWhiteLevel", "80")); } catch (Exception e) {}
+            try { autoMarginPadding = Float.parseFloat(prefs.getString("AutoMarginPadding", "1.0")); } catch (Exception e) {}
+            try { autoMarginNombre = Integer.parseInt(prefs.getString("AutoMarginNombre", "0")); } catch (Exception e) {}
+            try { autoMarginPadding = Float.parseFloat(prefs.getString("AutoMarginNombreSize", "3.0")); } catch (Exception e) {}
         }
 
         epub3Writer.setImageParam(dispW, dispH, coverW, coverH, resizeW, resizeH, singlePageSizeW, singlePageSizeH, singlePageWidth, imageSizeType, fitImage, svgImage, rotateImage,
@@ -343,14 +343,14 @@ public class MainActivity extends AppCompatActivity {
         epub3ImageWriter.setImageParam(dispW, dispH, coverW, coverH, resizeW, resizeH, singlePageSizeW, singlePageSizeH, singlePageWidth, imageSizeType, fitImage, svgImage, rotateImage,
                 imageScale, imageFloatType, imageFloatW, imageFloatH, jpegQualty, gamma, autoMarginLimitH, autoMarginLimitV, autoMarginWhiteLevel, autoMarginPadding, autoMarginNombre, nobreSize);
         //目次階層化設定
-        epub3Writer.setTocParam("1".equals(props.getProperty("NavNest")), "1".equals(props.getProperty("NcxNest")));
+        epub3Writer.setTocParam(prefs.getBoolean("NavNest", true), prefs.getBoolean("NcxNest", true));
 
         //スタイル設定
         String[] pageMargin = {};
-        try { pageMargin = props.getProperty("PageMargin").split(","); } catch (Exception e) {}
+        try { pageMargin = new String[]{prefs.getString("PageMarginTop", "0.5"),prefs.getString("PageMarginRight", "0.5"), prefs.getString("PageMarginBottom", "0.5"), prefs.getString("PageMarginLeft", "0.5")};; } catch (Exception e) {}
         if (pageMargin.length != 4) pageMargin = new String[]{"0", "0", "0", "0"};
         else {
-            String pageMarginUnit = props.getProperty("PageMarginUnit");
+            String pageMarginUnit = prefs.getString("PageMarginUnit", "em");
             for (int i=0; i<4; i++) { pageMargin[i] += pageMarginUnit; }
         }
         String[] bodyMargin = {};
