@@ -792,7 +792,7 @@
             android:dialogTitle="濁点/半濁点文字の出力方法を選択"
             android:entries="@array/dakuten_output_options"
             android:entryValues="@array/dakuten_output_values"
-            android:defaultValue="font"
+            android:defaultValue="2"
             android:summary="濁点/半濁点文字の出力方法を選択します" />
 
     </PreferenceCategory>
@@ -820,7 +820,8 @@
             android:title="取得間隔"
             android:summary="Web小説の取得間隔（秒）を設定します"
             android:defaultValue="0.5"
-            android:inputType="numberDecimal" />
+            android:inputType="numberDecimal"
+            />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="UA設定">
@@ -830,6 +831,13 @@
             android:summary="ユーザーエージェントを設定します"
             android:entries="@array/ua_entries"
             android:entryValues="@array/ua_values"
+            android:defaultValue="" />
+        <EditTextPreference
+            android:key="UserAgentCustom"
+            android:title="カスタムユーザーエージェント"
+            android:summary="カスタムUAを入力"
+            android:dialogTitle="ユーザーエージェントを入力してください"
+            android:enabled="false"
             android:defaultValue="" />
     </PreferenceCategory>
 
