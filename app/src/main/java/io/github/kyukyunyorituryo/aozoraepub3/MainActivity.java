@@ -1,5 +1,6 @@
 package io.github.kyukyunyorituryo.aozoraepub3;
 
+import static java.lang.Float.parseFloat;
 import static io.github.kyukyunyorituryo.aozoraepub3.AozoraEpub3.getOutFile;
 
 import android.content.ClipData;
@@ -309,7 +310,7 @@ public class MainActivity extends AppCompatActivity {
         int singlePageSizeW = 480; try { singlePageSizeW = Integer.parseInt(prefs.getString("SinglePageSizeW", "200")); } catch (Exception e) {}
         int singlePageSizeH = 640; try { singlePageSizeH = Integer.parseInt(prefs.getString("SinglePageSizeH", "300")); } catch (Exception e) {}
         int singlePageWidth = 600; try { singlePageWidth = Integer.parseInt(prefs.getString("SinglePageWidth", "300")); } catch (Exception e) {}
-        float imageScale = 1; try { imageScale = Float.parseFloat(prefs.getString("ImageScale", "1.0")); } catch (Exception e) {}
+        float imageScale = 1; try { imageScale = parseFloat(prefs.getString("ImageScale", "1.0")); } catch (Exception e) {}
         int imageFloatType = 0;
         try { if(prefs.getBoolean("ImageFloat", false)) {
             imageFloatType = 0;
@@ -322,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
         boolean svgImage = prefs.getBoolean("SvgImage", false);
         int rotateImage = 0; if ("1".equals(prefs.getString("RotateImage", "0"))) rotateImage = 90; else if ("2".equals(prefs.getString("RotateImage", "0"))) rotateImage = -90;
         float jpegQualty = 0.8f; try { jpegQualty = Integer.parseInt(prefs.getString("JpegQuality", "85"))/100f; } catch (Exception e) {}
-        float gamma = 1.0f; if ( prefs.getBoolean("Gamma", false)) try { gamma = Float.parseFloat(prefs.getString("GammaValue", "")); } catch (Exception e) {}
+        float gamma = 1.0f; if ( prefs.getBoolean("Gamma", false)) try { gamma = parseFloat(prefs.getString("GammaValue", "")); } catch (Exception e) {}
         int autoMarginLimitH = 0;
         int autoMarginLimitV = 0;
         int autoMarginWhiteLevel = 80;
@@ -333,9 +334,9 @@ public class MainActivity extends AppCompatActivity {
             try { autoMarginLimitH = Integer.parseInt(prefs.getString("AutoMarginLimitH", "15")); } catch (Exception e) {}
             try { autoMarginLimitV = Integer.parseInt(prefs.getString("AutoMarginLimitV", "15")); } catch (Exception e) {}
             try { autoMarginWhiteLevel = Integer.parseInt(prefs.getString("AutoMarginWhiteLevel", "80")); } catch (Exception e) {}
-            try { autoMarginPadding = Float.parseFloat(prefs.getString("AutoMarginPadding", "1.0")); } catch (Exception e) {}
+            try { autoMarginPadding = parseFloat(prefs.getString("AutoMarginPadding", "1.0")); } catch (Exception e) {}
             try { autoMarginNombre = Integer.parseInt(prefs.getString("AutoMarginNombre", "0")); } catch (Exception e) {}
-            try { autoMarginPadding = Float.parseFloat(prefs.getString("AutoMarginNombreSize", "3.0")); } catch (Exception e) {}
+            try { autoMarginPadding = parseFloat(prefs.getString("AutoMarginNombreSize", "3.0")); } catch (Exception e) {}
         }
 
         epub3Writer.setImageParam(dispW, dispH, coverW, coverH, resizeW, resizeH, singlePageSizeW, singlePageSizeH, singlePageWidth, imageSizeType, fitImage, svgImage, rotateImage,
@@ -354,16 +355,16 @@ public class MainActivity extends AppCompatActivity {
             for (int i=0; i<4; i++) { pageMargin[i] += pageMarginUnit; }
         }
         String[] bodyMargin = {};
-        try { bodyMargin = props.getProperty("BodyMargin").split(","); } catch (Exception e) {}
+        try { bodyMargin = new String[]{prefs.getString("BodyMarginTop", "0"), prefs.getString("BodyMarginRight", "0"), prefs.getString("BodyMarginBottom", "0"), prefs.getString("BodyMarginLeft", "0")}; } catch (Exception e) {}
         if (bodyMargin.length != 4) bodyMargin = new String[]{"0", "0", "0", "0"};
         else {
-            String bodyMarginUnit = props.getProperty("BodyMarginUnit");
+            String bodyMarginUnit = prefs.getString("BodyMarginUnit", "em");
             for (int i=0; i<4; i++) { bodyMargin[i] += bodyMarginUnit; }
         }
-        float lineHeight = 1.8f; try { lineHeight = Float.parseFloat(props.getProperty("LineHeight")); } catch (Exception e) {}
-        int fontSize = 100; try { fontSize = Integer.parseInt(props.getProperty("FontSize")); } catch (Exception e) {}
-        boolean boldUseGothic = "1".equals(props.getProperty("BoldUseGothic"));
-        boolean gothicUseBold = "1".equals(props.getProperty("gothicUseBold"));
+        float lineHeight = 1.8f; try { lineHeight = parseFloat(prefs.getString("LineHeight", "1.8")); } catch (Exception e) {}
+        int fontSize = 100; try { fontSize = Integer.parseInt(prefs.getString("FontSize", "100")); } catch (Exception e) {}
+        boolean boldUseGothic = prefs.getBoolean("BoldUseGothic", false);
+        boolean gothicUseBold = prefs.getBoolean("GothicUseBold", false);
         epub3Writer.setStyles(pageMargin, bodyMargin, lineHeight, fontSize, boldUseGothic, gothicUseBold);
 
 
@@ -374,34 +375,34 @@ public class MainActivity extends AppCompatActivity {
         int forcePageBreakEmptySize = 0;
         int forcePageBreakChapter = 0;
         int forcePageBreakChapterSize = 0;
-        if ("1".equals(props.getProperty("PageBreak"))) {
+        if (prefs.getBoolean("PageBreak", true)) {
             try {
-                try { forcePageBreakSize = Integer.parseInt(props.getProperty("PageBreakSize")) * 1024; } catch (Exception e) {}
-                if ("1".equals(props.getProperty("PageBreakEmpty"))) {
-                    try { forcePageBreakEmpty = Integer.parseInt(props.getProperty("PageBreakEmptyLine")); } catch (Exception e) {}
-                    try { forcePageBreakEmptySize = Integer.parseInt(props.getProperty("PageBreakEmptySize")) * 1024; } catch (Exception e) {}
-                } if ("1".equals(props.getProperty("PageBreakChapter"))) {
+                try { forcePageBreakSize = Integer.parseInt(prefs.getString("PageBreakSize", "400")) * 1024; } catch (Exception e) {}
+                if (prefs.getBoolean("PageBreakEmpty", false)) {
+                    try { forcePageBreakEmpty = Integer.parseInt(prefs.getString("PageBreakEmptyLine", "2")); } catch (Exception e) {}
+                    try { forcePageBreakEmptySize = Integer.parseInt(prefs.getString("PageBreakEmptySize", "300")) * 1024; } catch (Exception e) {}
+                } if (prefs.getBoolean("PageBreakChapter", false)) {
                     forcePageBreakChapter = 1;
-                    try { forcePageBreakChapterSize = Integer.parseInt(props.getProperty("PageBreakChapterSize")) * 1024; } catch (Exception e) {}
+                    try { forcePageBreakChapterSize = Integer.parseInt(prefs.getString("PageBreakChapterSize", "200")) * 1024; } catch (Exception e) {}
                 }
             } catch (Exception e) {}
         }
-        int maxLength = 64; try { maxLength = Integer.parseInt((props.getProperty("ChapterNameLength"))); } catch (Exception e) {}
-        boolean insertTitleToc = "1".equals(props.getProperty("TitleToc"));
-        boolean chapterExclude = "1".equals(props.getProperty("ChapterExclude"));
-        boolean chapterUseNextLine = "1".equals(props.getProperty("ChapterUseNextLine"));
-        boolean chapterSection = !props.containsKey("ChapterSection")||"1".equals(props.getProperty("ChapterSection"));
-        boolean chapterH = "1".equals(props.getProperty("ChapterH"));
-        boolean chapterH1 = "1".equals(props.getProperty("ChapterH1"));
-        boolean chapterH2 = "1".equals(props.getProperty("ChapterH2"));
-        boolean chapterH3 = "1".equals(props.getProperty("ChapterH3"));
-        boolean sameLineChapter = "1".equals(props.getProperty("SameLineChapter"));
-        boolean chapterName = "1".equals(props.getProperty("ChapterName"));
-        boolean chapterNumOnly = "1".equals(props.getProperty("ChapterNumOnly"));
-        boolean chapterNumTitle = "1".equals(props.getProperty("ChapterNumTitle"));
-        boolean chapterNumParen = "1".equals(props.getProperty("ChapterNumParen"));
-        boolean chapterNumParenTitle = "1".equals(props.getProperty("hapterNumParenTitle"));
-        String chapterPattern = ""; if ("1".equals(props.getProperty("ChapterPattern"))) chapterPattern = props.getProperty("ChapterPatternText");
+        int maxLength = 64; try { maxLength = Integer.parseInt((prefs.getString("MaxChapterNameLength", "64"))); } catch (Exception e) {}
+        boolean insertTitleToc = prefs.getBoolean("TitleToc", true);
+        boolean chapterExclude = prefs.getBoolean("ChapterExclude", true);
+        boolean chapterUseNextLine = prefs.getBoolean("ChapterUseNextLine", false);
+        boolean chapterSection = prefs.getBoolean("ChapterSection", true);
+        boolean chapterH = prefs.getBoolean("ChapterH", true);
+        boolean chapterH1 = prefs.getBoolean("ChapterH1", true);
+        boolean chapterH2 = prefs.getBoolean("ChapterH2", true);
+        boolean chapterH3 = prefs.getBoolean("ChapterH3", true);
+        boolean sameLineChapter = prefs.getBoolean("SameLineChapter", false);
+        boolean chapterName = prefs.getBoolean("ChapterName", true);
+        boolean chapterNumOnly = prefs.getBoolean("ChapterNumOnly", false);
+        boolean chapterNumTitle = prefs.getBoolean("ChapterNumTitle", false);
+        boolean chapterNumParen = prefs.getBoolean("ChapterNumParen", false);
+        boolean chapterNumParenTitle = prefs.getBoolean("ChapterNumParenTitle", false);
+        String chapterPattern = ""; if (prefs.getBoolean("ChapterPattern", false)) chapterPattern = prefs.getString("ChapterPatternText", "^(見出し１|見出し２|見出し３)$");
 
         //オプション指定を反映
         boolean useFileName = false;//表題に入力ファイル名利用
@@ -420,16 +421,16 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         //挿絵なし
-        aozoraConverter.setNoIllust("1".equals(props.getProperty("NoIllust")));
+        aozoraConverter.setNoIllust(prefs.getBoolean("NoIllust", false));
 
         //栞用span出力
         aozoraConverter.setWithMarkId(withMarkId);
         //変換オプション設定
         aozoraConverter.setAutoYoko(autoYoko, autoYokoNum1, autoYokoNum3, autoYokoEQ1);
         //文字出力設定
-        int dakutenType = 0; try { dakutenType = Integer.parseInt(props.getProperty("DakutenType")); } catch (Exception e) {}
-        boolean printIvsBMP = "1".equals(props.getProperty("IvsBMP"));
-        boolean printIvsSSP = "1".equals(props.getProperty("IvsSSP"));
+        int dakutenType = 0; try { dakutenType = Integer.parseInt(prefs.getString("DakutenType", "2")); } catch (Exception e) {}
+        boolean printIvsBMP = prefs.getBoolean("IvsBMP", false);
+        boolean printIvsSSP = prefs.getBoolean("IvsSSP", false);
 
         aozoraConverter.setCharOutput(dakutenType, printIvsBMP, printIvsSSP);
         //全角スペースの禁則
@@ -569,7 +570,7 @@ public class MainActivity extends AppCompatActivity {
             //先頭からの場合で指定行数以降なら表紙無し
             if ("".equals(coverFileName)) {
                 try {
-                    int maxCoverLine = Integer.parseInt(props.getProperty("MaxCoverLine"));
+                    int maxCoverLine = Integer.parseInt(prefs.getString("MaxCoverLine", "10"));
                     if (maxCoverLine > 0 && bookInfo.firstImageLineNum >= maxCoverLine) {
                         coverImageIndex = -1;
                         coverFileName = null;
@@ -699,15 +700,38 @@ public class MainActivity extends AppCompatActivity {
                         postLog(urlString + " は変換できませんでした");
                         continue;
                     }
-
+                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
                     int interval = 500;
-                    String Ua = "Chrome";
+                    try { interval = (int)(Float.parseFloat(prefs.getString("WebInterval", "0.5"))*1000); } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                    String Ua="";
+                    // UserAgentType の値を取得（ListPreference）
+                    String userAgentType = prefs.getString("UserAgent", ""); // "default" は初期値
+
+                    if ("custom".equals(userAgentType)) {
+                        // カスタム値を使用
+                        Ua = prefs.getString("UserAgentCustom", "");
+
+                    } else {
+                        // 選択されたUserAgentTypeをそのまま使用
+                        Ua = userAgentType;
+                    }
+
                     int beforeChapter = 0;
+                    if (prefs.getBoolean("WebBeforeChapter", false)) {
+                        try { beforeChapter = Integer.parseInt(prefs.getString("WebBeforeChapterCount", "1")); } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                     float modifiedExpire = 0;
-                    boolean WebConvertUpdated = false;
-                    boolean WebModifiedOnly = false;
-                    boolean WebModifiedTail = false;
-                    boolean WebLageImage = false;
+                    try { modifiedExpire = Float.parseFloat(prefs.getString("WebModifiedExpire", "24")); } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                    boolean WebConvertUpdated = prefs.getBoolean("WebConvertUpdated", false);
+                    boolean WebModifiedOnly = prefs.getBoolean("WebModifiedOnly", false);
+                    boolean WebModifiedTail = prefs.getBoolean("WebModifiedTail", false);
+                    boolean WebLageImage = prefs.getBoolean("jCheckWebLageImage", false);
 
                     srcFile = webConverter.convertToAozoraText(urlString, getCachePath(this), interval,
                             modifiedExpire, WebConvertUpdated, WebModifiedOnly, WebModifiedTail,
@@ -804,7 +828,7 @@ public class MainActivity extends AppCompatActivity {
         float imageScale = 0;
         if (prefs.getBoolean("imageScale_enabled", false)) {
             try {
-                imageScale = Float.parseFloat(prefs.getString("imageScale_value", "0"));
+                imageScale = parseFloat(prefs.getString("imageScale_value", "0"));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -843,7 +867,7 @@ public class MainActivity extends AppCompatActivity {
         float gamma = 1.0f;
         if (prefs.getBoolean("gamma_enabled", false)) {
             try {
-                gamma = Float.parseFloat(prefs.getString("gamma_value", "1.0"));
+                gamma = parseFloat(prefs.getString("gamma_value", "1.0"));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -862,9 +886,9 @@ public class MainActivity extends AppCompatActivity {
                 autoMarginLimitH = Integer.parseInt(prefs.getString("autoMarginLimitH", "0"));
                 autoMarginLimitV = Integer.parseInt(prefs.getString("autoMarginLimitV", "0"));
                 autoMarginWhiteLevel = Integer.parseInt(prefs.getString("autoMarginWhiteLevel", "0"));
-                autoMarginPadding = Float.parseFloat(prefs.getString("autoMarginPadding", "0"));
+                autoMarginPadding = parseFloat(prefs.getString("autoMarginPadding", "0"));
                 autoMarginNombre = prefs.getInt("autoMarginNombre", 0);
-                autoMarginNombreSize = Float.parseFloat(prefs.getString("autoMarginNombreSize", "3")) * 0.01f;
+                autoMarginNombreSize = parseFloat(prefs.getString("autoMarginNombreSize", "3")) * 0.01f;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -924,7 +948,7 @@ public class MainActivity extends AppCompatActivity {
         // 行間
         float lineHeight = 1.8f;
         try {
-            lineHeight = Float.parseFloat(prefs.getString("lineHeight", "1.8"));
+            lineHeight = parseFloat(prefs.getString("lineHeight", "1.8"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -932,7 +956,7 @@ public class MainActivity extends AppCompatActivity {
         // フォントサイズ
         int fontSize = 100;
         try {
-            fontSize = (int) Float.parseFloat(prefs.getString("fontSize", "100"));
+            fontSize = (int) parseFloat(prefs.getString("fontSize", "100"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
