@@ -58,6 +58,24 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 return true;
             });
         }
+
+        ListPreference listPref = findPreference("UserAgent");
+        EditTextPreference editPref = findPreference("UserAgentCustom");
+
+        if (listPref != null && editPref != null) {
+            listPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    String selected = (String) newValue;
+                    boolean isCustom = "custom".equals(selected);
+                    editPref.setEnabled(isCustom);
+                    return true;
+                }
+            });
+
+            // 初期表示時に状態を反映
+            editPref.setEnabled("custom".equals(listPref.getValue()));
+        }
     }
 
     private void updateDependents(String[] keys, boolean enabled) {
@@ -68,5 +86,6 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             }
         }
     }
+
 }
 
