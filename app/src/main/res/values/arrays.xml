@@ -244,9 +244,9 @@
         <item>フォント</item>
     </string-array>
     <string-array name="dakuten_output_values">
-        <item>as_is</item>
-        <item>overlay</item>
-        <item>font</item>
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
     </string-array>
     <!-- res/values/strings.xml -->
     <string-array name="ua_entries">
@@ -254,12 +254,14 @@
         <item>Chrome</item>
         <item>Safari</item>
         <item>Firefox</item>
+        <item>カスタム</item>
     </string-array>
     <string-array name="ua_values">
         <item> </item>
         <item>Chrome</item>
         <item>Safari</item>
         <item>Firefox</item>
+        <item>custom</item>
     </string-array>
 </resources>
 
