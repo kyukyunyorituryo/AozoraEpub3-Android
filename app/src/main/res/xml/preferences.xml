@@ -30,14 +30,14 @@
             app:dialogTitle="画像注記の取得最大行数"
             android:defaultValue="10"
             android:inputType="number" />
-
+        <!-- カバー選択
         <ListPreference
             app:key="Cover"
             app:title="表紙設定"
             app:entries="@array/cover_options"
             app:entryValues="@array/cover_options_values"
             android:defaultValue="0" />
-
+        -->
         <CheckBoxPreference
             app:key="CoverHistory"
             app:title="表紙履歴利用"
