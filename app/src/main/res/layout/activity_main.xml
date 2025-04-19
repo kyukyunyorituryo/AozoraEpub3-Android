@@ -35,12 +35,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="ファイルを処理" />
-
     <Button
-        android:id="@+id/button_save"
+        android:id="@+id/button_cancel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="保存 (SAF)" />
+        android:text="キャンセル" />
     <TextView
         android:id="@+id/textViewLog"
         android:layout_width="match_parent"
