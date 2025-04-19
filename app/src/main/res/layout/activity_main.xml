@@ -39,7 +39,7 @@
         android:id="@+id/button_cancel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="キャンセル" />
+        android:text="処理中止" />
     <TextView
         android:id="@+id/textViewLog"
         android:layout_width="match_parent"
