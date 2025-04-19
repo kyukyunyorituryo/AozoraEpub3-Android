@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private File srcFile;
     private Properties props;
     private File outFile;
-
+    private String coverFileName= null;//表紙画像パス
     //プログレスバー
     ProgressBar jProgressBar;
 
@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
         LogAppender.append(" )\n対応ファイル: 青空文庫txt(txt,zip,rar), 画像(zip,rar,cbz)");
 
 
-        //プロパティーの読み込み
+        /*プロパティーの読み込み
         props = new Properties();
         try {
             InputStream isini = this.getAssets().open("AozoraEpub3.ini");
@@ -114,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        */
 
         Button buttonCover = findViewById(R.id.coverButton);
         Button buttonFigure = findViewById(R.id.figureButton);
@@ -178,7 +179,8 @@ public class MainActivity extends AppCompatActivity {
         String[] mimeTypes ={
                 "image/jpeg",
                 "image/png"};
-        intent.setType("*/*").putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+        intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         filePickerLauncher.launch(intent);
     }
@@ -190,9 +192,48 @@ public class MainActivity extends AppCompatActivity {
                 "image/jpeg",
                 "image/png"};
         intent.setType("*/*").putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
-        filePickerLauncher.launch(intent);
+        filePickerLaunch.launch(intent);
     }
+    // 🔹 ファイル選択 UI を開く (SAF) - 単一ファイル限定
+    private final ActivityResultLauncher<Intent> filePickerLaunch =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Intent data = result.getData();
+                    Uri selectedFileUri = data.getData();  // 単一ファイルのみ
 
+                    if (selectedFileUri != null) {
+                        copyFileToInternalStorageCover(selectedFileUri);
+                    }
+                }
+            });
+    // 🔹 選択したファイルを内部ストレージにコピー
+    private void copyFileToInternalStorageCover(Uri uri) {
+        File src = null;
+        String[] projection = {MediaStore.MediaColumns.DISPLAY_NAME};
+        String path = null;
+        Cursor cursor = this.getContentResolver().query(uri, projection, null, null, null);
+        if (cursor != null) {
+
+            if (cursor.moveToFirst()) {
+                path = cursor.getString(0);
+            }
+            cursor.close();
+            Context context = getApplicationContext();
+            src = new File(context.getFilesDir(), path);
+
+            System.out.println("filename:" + path);
+            System.out.println("filename:" + src.getPath());
+        }
+
+        try {
+            Files.copy(getContentResolver().openInputStream(uri), src.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Toast.makeText(this, "ファイルを内部ストレージにコピーしました", Toast.LENGTH_SHORT).show();
+            coverFileName=src.getPath();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "コピーに失敗しました", Toast.LENGTH_SHORT).show();
+        }
+    }
     // 🔹 ファイル選択 UI を開く (SAF) - 複数ファイル対応
     private final ActivityResultLauncher<Intent> filePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -224,7 +265,8 @@ public class MainActivity extends AppCompatActivity {
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         String[] mimeTypes ={
                 "text/plain",
-                "application/zip"};
+                "application/zip",
+                "application/vnd.rar"};
         intent.setType("*/*").putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
         filePickerLauncher.launch(intent);
     }
@@ -251,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             Files.copy(getContentResolver().openInputStream(uri), src.toPath(), StandardCopyOption.REPLACE_EXISTING);
             Toast.makeText(this, "ファイルを内部ストレージにコピーしました", Toast.LENGTH_SHORT).show();
-            if (path.endsWith(".txt") || path.endsWith(".zip")) {
+            if (path.endsWith(".txt") || path.endsWith(".zip")|| path.endsWith(".rar")) {
                srcFile= src;
             }
         } catch (IOException e) {
@@ -303,8 +345,8 @@ public class MainActivity extends AppCompatActivity {
         //画面サイズと画像リサイズ
         int dispW = 600; try { dispW = Integer.parseInt(prefs.getString("DispW", "600")); } catch (Exception e) {}
         int dispH = 800; try { dispH = Integer.parseInt(prefs.getString("DispH", "800"));  } catch (Exception e) {}
-        int coverW = 600; try { coverW = Integer.parseInt(prefs.getString("CoverW", "600")); } catch (Exception e) {}
-        int coverH = 800; try { coverH = Integer.parseInt(prefs.getString("CoverH", "800")); } catch (Exception e) {}
+        int coverW = 600; try { coverW = Integer.parseInt(prefs.getString("CoverW", "0")); } catch (Exception e) {}
+        int coverH = 800; try { coverH = Integer.parseInt(prefs.getString("CoverH", "0")); } catch (Exception e) {}
         int resizeW = 0; if (prefs.getBoolean("ResizeW", false)) try { resizeW = Integer.parseInt(prefs.getString("ResizeNumW", "2048")); } catch (Exception e) {}
         int resizeH = 0; if (prefs.getBoolean("ResizeH", false)) try { resizeH = Integer.parseInt(prefs.getString("ResizeNumH", "2048")); } catch (Exception e) {}
         int singlePageSizeW = 480; try { singlePageSizeW = Integer.parseInt(prefs.getString("SinglePageSizeW", "200")); } catch (Exception e) {}
@@ -406,7 +448,7 @@ public class MainActivity extends AppCompatActivity {
 
         //オプション指定を反映
         boolean useFileName = false;//表題に入力ファイル名利用
-        String coverFileName = null;
+        //String coverFileName = null;//トップで指定
         String encType = "AUTO";//文字コードの初期設定を空に
         String outExt = ".epub";
         boolean autoFileName = true; //ファイル名を表題に利用
