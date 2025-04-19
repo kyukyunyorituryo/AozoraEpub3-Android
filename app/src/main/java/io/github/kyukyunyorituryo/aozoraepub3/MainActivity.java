@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
         LogAppender.println("AozoraEpub3: "+AozoraEpub3.VERSION);
         LogAppender.append("  ( VM specification version "+System.getProperty("java.specification.version"));
         LogAppender.append("  /  "+System.getProperty("os.name"));
-        LogAppender.append(" )\n対応ファイル: 青空文庫txt(txt,zip,rar), 画像(zip,rar,cbz)");
+        LogAppender.append(" )\n対応ファイル: 青空文庫txt(txt,zip,rar), 画像(zip,rar,cbz)\n");
 
 
         /*プロパティーの読み込み
@@ -185,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
             // 変換処理を実行
             convertWeb(urlList, new ArrayList<>(), dstPath);
         } else {
-            LogAppender.println("URLが空または無効です");
+            System.out.println("URLが空または無効です");
         }
     }
     private void figureFilePicker() {
@@ -236,8 +236,8 @@ public class MainActivity extends AppCompatActivity {
             Context context = getApplicationContext();
             src = new File(context.getFilesDir(), path);
 
-            System.out.println("filename:" + path);
-            System.out.println("filename:" + src.getPath());
+            //System.out.println("filename:" + path);
+            //System.out.println("filename:" + src.getPath());
         }
 
         try {
