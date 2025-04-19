@@ -120,20 +120,35 @@ public class MainActivity extends AppCompatActivity {
         Button buttonFigure = findViewById(R.id.figureButton);
         Button buttonOpen = findViewById(R.id.button_open);
         Button buttonProcess = findViewById(R.id.button_process);
-        Button buttonSave = findViewById(R.id.button_save);
+        Button buttoncancel = findViewById(R.id.button_cancel);
         Button buttonSetting =findViewById(R.id.openSettingsButton);
 
         buttonCover.setOnClickListener(v ->coverFilePicker());
         buttonFigure.setOnClickListener( v -> figureFilePicker());
         buttonOpen.setOnClickListener(v -> openFilePicker());
-        buttonProcess.setOnClickListener(v -> processFile());
-        buttonSave.setOnClickListener(v -> openFileSaver());
+        buttonProcess.setOnClickListener(v -> {
+            processFile();
+            openFileSaver();
+        });
+
+        buttoncancel.setOnClickListener(v -> cancel());
+
         buttonSetting.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(intent);
         });
+
         // Intent から URL を受け取る
         handleIntent(getIntent());
+    }
+
+    private void cancel() {
+        if (epub3Writer != null) epub3Writer.cancel();
+        if (epub3ImageWriter != null) epub3ImageWriter.cancel();
+        if (aozoraConverter != null) aozoraConverter.cancel();
+        if (webConverter != null) webConverter.canceled();
+
+        convertCanceled = true;
     }
     //preferenceの取得
 
@@ -305,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
         //File inputFile = new File(getFilesDir(), "input.txt");
         //File outputFile = new File(getFilesDir(), "output.txt");
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        if (!srcFile.exists() || srcFile.length() == 0) {
+        if (srcFile == null || !srcFile.exists() || srcFile.length() == 0) {
             Toast.makeText(this, "入力ファイルが存在しないか空です", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -656,7 +671,7 @@ public class MainActivity extends AppCompatActivity {
                     aozoraConverter, writer,
                     encType, bookInfo, imageInfoReader, txtIdx);
         }
-
+        openFileSaver();
     }
     // 🔹 SAF で保存先を選択する
     private final ActivityResultLauncher<Intent> saveFileLauncher =
@@ -670,6 +685,12 @@ public class MainActivity extends AppCompatActivity {
             });
 
     private void openFileSaver() {
+        if (outFile == null) {
+            Toast.makeText(this, "出力ファイルが指定されていません", Toast.LENGTH_SHORT).show();
+            LogAppender.error("出力ファイルが指定されていません");
+            return;
+        }
+
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/epub+zip");
