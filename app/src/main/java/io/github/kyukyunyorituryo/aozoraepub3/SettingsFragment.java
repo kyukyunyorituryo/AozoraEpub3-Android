@@ -1,5 +1,7 @@
 package io.github.kyukyunyorituryo.aozoraepub3;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.preference.CheckBoxPreference;
@@ -8,6 +10,8 @@ import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
+
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     @Override
@@ -75,6 +79,24 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
             // 初期表示時に状態を反映
             editPref.setEnabled("custom".equals(listPref.getValue()));
+        }
+        Preference licensePref = findPreference("oss_licenses");
+        if (licensePref != null) {
+            licensePref.setOnPreferenceClickListener(preference -> {
+                Intent intent = new Intent(requireContext(), OssLicensesMenuActivity.class);
+                intent.putExtra("title", "オープンソースライセンス"); // 任意でタイトル設定
+                startActivity(intent);
+                return true;
+            });
+        }
+        Preference githubPref = findPreference("oss_github");
+        if (githubPref != null) {
+            githubPref.setOnPreferenceClickListener(preference -> {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("https://github.com/kyukyunyorituryo/AozoraEpub3-Android"));
+                startActivity(browserIntent);
+                return true;
+            });
         }
     }
 

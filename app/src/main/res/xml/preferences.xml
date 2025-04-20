@@ -898,5 +898,14 @@
             android:summary="最新話から連続した更新分のみ変換します"
             android:defaultValue="false"/>
     </PreferenceCategory>
+    <!-- 他の設定 -->
 
+    <Preference
+        android:key="oss_licenses"
+        android:title="オープンソースライセンス"
+        android:summary="使用しているOSSライブラリのライセンス情報を表示します" />
+    <Preference
+        android:key="oss_github"
+        android:title="AozoraEpub3のOSSコード"
+        android:summary="GitHub 上のライセンス情報を見る" />
 </PreferenceScreen>
