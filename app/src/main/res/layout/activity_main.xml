@@ -7,39 +7,46 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity">
+
     <!-- 表紙画像ファイルの読み込みボタン -->
     <Button
         android:id="@+id/coverButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="表紙画像を読み込む" />
+        android:text="@string/cover_button_text" />
+
     <!-- 挿絵ファイルの読み込みボタン -->
     <Button
         android:id="@+id/figureButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="挿絵を読み込む" />
+        android:text="@string/figure_button_text" />
+
     <Button
         android:id="@+id/button_open"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ファイルを選択 (SAF)" />
+        android:text="@string/open_file_button_text" />
+
     <!-- 設定を開くボタン -->
     <Button
         android:id="@+id/openSettingsButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="設定を開く" />
+        android:text="@string/open_settings_button_text" />
+
     <Button
         android:id="@+id/button_process"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ファイルを処理" />
+        android:text="@string/process_file_button_text" />
+
     <Button
         android:id="@+id/button_cancel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="処理中止" />
+        android:text="@string/cancel_button_text" />
+
     <TextView
         android:id="@+id/textViewLog"
         android:layout_width="match_parent"
@@ -47,5 +54,5 @@
         android:background="#EEEEEE"
         android:text=""
         android:textSize="16sp"
-        android:scrollbars="vertical"/>
+        android:scrollbars="vertical" />
 </LinearLayout>

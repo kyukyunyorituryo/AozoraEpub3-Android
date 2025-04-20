@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">AozoraEpub3</string>
+    <string name="cover_button_text">表紙画像を読み込む</string>
+    <string name="figure_button_text">挿絵を読み込む</string>
+    <string name="open_file_button_text">ファイルを選択 (SAF)</string>
+    <string name="open_settings_button_text">設定を開く</string>
+    <string name="process_file_button_text">ファイルを処理</string>
+    <string name="cancel_button_text">処理中止</string>
 </resources>
