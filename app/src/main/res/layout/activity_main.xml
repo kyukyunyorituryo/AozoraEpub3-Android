@@ -1,58 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".MainActivity">
+    android:padding="16dp">
 
-    <!-- 表紙画像ファイルの読み込みボタン -->
-    <Button
-        android:id="@+id/coverButton"
-        android:layout_width="match_parent"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/cover_button_text" />
-
-    <!-- 挿絵ファイルの読み込みボタン -->
-    <Button
-        android:id="@+id/figureButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/figure_button_text" />
-
-    <Button
-        android:id="@+id/button_open"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/open_file_button_text" />
-
-    <!-- 設定を開くボタン -->
-    <Button
-        android:id="@+id/openSettingsButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/open_settings_button_text" />
-
-    <Button
-        android:id="@+id/button_process"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/process_file_button_text" />
-
-    <Button
-        android:id="@+id/button_cancel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/cancel_button_text" />
+        android:background="#303F9F"
+        android:title="@string/app_name"
+        app:titleTextColor="@android:color/white"
+        app:titleCentered="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:navigationIconTint="@android:color/white"/>
 
     <TextView
-        android:id="@+id/textViewLog"
-        android:layout_width="match_parent"
+        android:id="@+id/banner_ad_text"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:background="#FFF8E1"
+        android:textColor="#4E342E"
+        android:padding="8dp"
+        android:text="@string/banner_text"
+        android:autoLink="web"
+        android:gravity="center"
+        android:textSize="14sp"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/openSettingsButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/open_settings_button_text"
+        app:layout_constraintTop_toBottomOf="@id/banner_ad_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/figureButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/load_illustrations"
+        app:layout_constraintTop_toBottomOf="@id/openSettingsButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_load_body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/load_body"
+        app:layout_constraintTop_toBottomOf="@id/figureButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/coverButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/load_cover"
+        app:layout_constraintTop_toBottomOf="@id/button_load_body"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"/>
+
+    <ScrollView
+        android:id="@+id/log_scrollview"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:background="#EEEEEE"
-        android:text=""
-        android:textSize="16sp"
-        android:scrollbars="vertical" />
-</LinearLayout>
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/coverButton"
+        app:layout_constraintBottom_toTopOf="@id/action_buttons_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/text_log"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:typeface="monospace"
+            android:textIsSelectable="true"
+            android:text="@string/log_placeholder" />
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/action_buttons_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_cancel"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_convert"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/start_conversion" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

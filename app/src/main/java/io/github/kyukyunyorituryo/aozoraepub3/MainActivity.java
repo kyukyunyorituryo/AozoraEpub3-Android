@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.method.ScrollingMovementMethod;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -19,6 +21,7 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -26,6 +29,7 @@ import androidx.core.view.WindowInsetsCompat;
 import android.content.SharedPreferences;
 import androidx.preference.PreferenceManager;
 import com.github.junrar.exception.RarException;
+import com.google.android.material.appbar.MaterialToolbar;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -87,15 +91,19 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_layout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        // Toolbar を使っている場合はここで setSupportActionBar() を呼ぶ
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         // ログを表示するTextViewを取得
-        TextView logTextView = findViewById(R.id.textViewLog);
+        TextView logTextView = findViewById(R.id.text_log);
         logTextView.setMovementMethod(new ScrollingMovementMethod());
 
+        TextView adText = findViewById(R.id.banner_ad_text);
         // LogAppenderにTextViewをセット
         LogAppender.setTextView(logTextView);
 
@@ -118,8 +126,8 @@ public class MainActivity extends AppCompatActivity {
 
         Button buttonCover = findViewById(R.id.coverButton);
         Button buttonFigure = findViewById(R.id.figureButton);
-        Button buttonOpen = findViewById(R.id.button_open);
-        Button buttonProcess = findViewById(R.id.button_process);
+        Button buttonOpen = findViewById(R.id.button_load_body);
+        Button buttonProcess = findViewById(R.id.button_convert);
         Button buttoncancel = findViewById(R.id.button_cancel);
         Button buttonSetting =findViewById(R.id.openSettingsButton);
 
@@ -140,8 +148,24 @@ public class MainActivity extends AppCompatActivity {
 
         // Intent から URL を受け取る
         handleIntent(getIntent());
+
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.toolbar_menu, menu);
+        return true;
     }
 
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_settings) {
+            // 設定画面を開く
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
     private void cancel() {
         if (epub3Writer != null) epub3Writer.cancel();
         if (epub3ImageWriter != null) epub3ImageWriter.cancel();
