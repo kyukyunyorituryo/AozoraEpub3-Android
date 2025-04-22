@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Xml;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
@@ -31,6 +32,9 @@ import androidx.preference.PreferenceManager;
 import com.github.junrar.exception.RarException;
 import com.google.android.material.appbar.MaterialToolbar;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -38,6 +42,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
+import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -48,6 +53,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.net.URI;
 import java.net.URL;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -84,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     boolean convertCanceled = false;
     /** 変換実行中 */
     boolean running = false;
+    private final String RSS_URL = "https://kyukyunyorituryo.github.io/kindle_sale/rss.xml";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,6 +156,67 @@ public class MainActivity extends AppCompatActivity {
         // Intent から URL を受け取る
         handleIntent(getIntent());
 
+        new Thread(() -> {
+            try {
+                URL url = new URL(RSS_URL);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                InputStream inputStream = conn.getInputStream();
+
+                List<String> titlesAndLinks = parseRSS(inputStream);
+
+                if (!titlesAndLinks.isEmpty()) {
+                    // ランダムに1件だけ選ぶ
+                    Random random = new Random();
+                    String randomItem = titlesAndLinks.get(random.nextInt(titlesAndLinks.size()));
+
+                    runOnUiThread(() -> adText.setText(randomItem));
+                } else {
+                    runOnUiThread(() -> adText.setText("記事が見つかりませんでした。"));
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> adText.setText("エラーが発生しました。"));
+            }
+        }).start();
+    }
+    // RSSをパースしてタイトルとリンクのリストを返す
+    private List<String> parseRSS(InputStream inputStream) throws XmlPullParserException, IOException {
+        List<String> items = new ArrayList<>();
+
+        XmlPullParser parser = Xml.newPullParser();
+        parser.setInput(inputStream, null);
+
+        boolean insideItem = false;
+        String title = null;
+        String link = null;
+
+        int eventType = parser.getEventType();
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            String name = parser.getName();
+
+            if (eventType == XmlPullParser.START_TAG) {
+                if (name.equalsIgnoreCase("item")) {
+                    insideItem = true;
+                } else if (insideItem && name.equalsIgnoreCase("title")) {
+                    title = parser.nextText();
+                } else if (insideItem && name.equalsIgnoreCase("link")) {
+                    link = parser.nextText();
+                }
+
+            } else if (eventType == XmlPullParser.END_TAG && name.equalsIgnoreCase("item")) {
+                if (title != null && link != null) {
+                    items.add("■ " + title + "\n" + link);
+                }
+                title = null;
+                link = null;
+                insideItem = false;
+            }
+
+            eventType = parser.next();
+        }
+
+        return items;
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
