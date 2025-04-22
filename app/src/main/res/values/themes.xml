@@ -1,9 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- ベーステーマ。NoActionBar を指定 -->
     <style name="Base.Theme.AozoraEpub3" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- 必要に応じて色などを追加 -->
+        <item name="colorOnPrimary">@android:color/white</item>
     </style>
 
+    <!-- 実際に使うテーマ -->
     <style name="Theme.AozoraEpub3" parent="Base.Theme.AozoraEpub3" />
 </resources>
