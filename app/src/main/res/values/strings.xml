@@ -1,11 +1,11 @@
 <resources>
-    <string name="app_name">AozoraEPUB3変換</string>
+    <string name="app_name">AozoraEpub3</string>
     <string name="banner_text">キンドルセール https://kyukyunyorituryo.github.io/kindle_sale/</string>
     <string name="open_settings_button_text">⚙️ 設定を開く</string>
     <string name="load_illustrations">📂 挿絵を読み込む</string>
     <string name="load_body">📄 本文ファイルを読み込む</string>
     <string name="load_cover">🖼 表紙画像を読み込む</string>
-    <string name="cancel">❌ キャンセル</string>
+    <string name="cancel">❌ 処理中止</string>
     <string name="start_conversion">✅ 変換開始</string>
     <string name="log_placeholder">ログがここに表示されます。\n</string>
 </resources>
