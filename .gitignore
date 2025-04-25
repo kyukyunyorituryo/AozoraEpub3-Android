@@ -18,3 +18,5 @@ local.properties
 *.keystore
 crashlytics-build.properties
 fabric.properties
+*.jks
+keystore.properties
