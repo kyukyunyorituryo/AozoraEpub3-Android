@@ -35,8 +35,8 @@ android {
 }
 
 dependencies {
-    // https://mvnrepository.com/artifact/org.apache.velocity/velocity-engine-core
-    implementation group: 'org.apache.velocity', name: 'velocity-engine-core', version: '2.4'
+// https://mvnrepository.com/artifact/org.apache.velocity/velocity-engine-core
+    implementation group: 'org.apache.velocity', name: 'velocity-engine-core', version: '2.4.1'
     // https://mvnrepository.com/artifact/com.github.albfernandez/juniversalchardet
     implementation group: 'com.github.albfernandez', name: 'juniversalchardet', version: '2.5.0'
     // https://mvnrepository.com/artifact/org.apache.commons/commons-compress
@@ -46,13 +46,13 @@ dependencies {
 // https://mvnrepository.com/artifact/commons-cli/commons-cli
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.9.0'
 // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.16'
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
 // https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
-    implementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.16'
+    implementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.17'
 // https://mvnrepository.com/artifact/org.jsoup/jsoup
-    implementation group: 'org.jsoup', name: 'jsoup', version: '1.18.1'
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.20.1'
 // https://mvnrepository.com/artifact/org.json/json
-    implementation group: 'org.json', name: 'json', version: '20240303'
+    implementation group: 'org.json', name: 'json', version: '20250107'
 
     implementation libs.appcompat
     implementation libs.material
