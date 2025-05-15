@@ -763,7 +763,6 @@ public class MainActivity extends AppCompatActivity {
                     aozoraConverter, writer,
                     encType, bookInfo, imageInfoReader, txtIdx);
         }
-        openFileSaver();
     }
     // 🔹 SAF で保存先を選択する
     private final ActivityResultLauncher<Intent> saveFileLauncher =
