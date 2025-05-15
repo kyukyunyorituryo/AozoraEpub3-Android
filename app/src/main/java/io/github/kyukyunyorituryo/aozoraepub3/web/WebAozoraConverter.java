@@ -382,7 +382,7 @@ public class WebAozoraConverter
                 String title = episode.getJSONObject("Work:" + cd).getString("title");
                 String introduction = episode.getJSONObject("Work:" + cd).getString("introduction");
                 String altauthor = "";
-                if (episode.getJSONObject("Work:" + cd).optString("alternateAuthorName", null) != null) {
+                if (!episode.getJSONObject("Work:" + cd).optString("alternateAuthorName", null).equals("null")) {
                     altauthor = episode.getJSONObject("Work:" + cd).getString("alternateAuthorName") + "／";
                 }
                 String author = altauthor + episode.getJSONObject(episode.getJSONObject("Work:" + cd).getJSONObject("author").getString("__ref")).getString("activityName");
