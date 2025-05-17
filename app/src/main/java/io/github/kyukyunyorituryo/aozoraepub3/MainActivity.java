@@ -895,7 +895,7 @@ public class MainActivity extends AppCompatActivity {
                         postLog(urlString + " の変換をスキップまたは失敗しました");
                         continue;
                     }
-
+                    postLog(srcFile.getName() + " の変換準備ができました");
                     // convertFiles(new File[]{srcFile}, dstPath);
                 }
             } catch (Exception e) {
