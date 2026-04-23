@@ -11,6 +11,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
 
@@ -367,5 +369,14 @@ public class ImageInfoReader
 			}
 		}
 		return null;
+	}
+	private final Map<String, String> imageAltMap = new LinkedHashMap<>();
+
+	public void addImageAlt(String fileName, String altText) {
+		imageAltMap.put(correctExt(fileName), altText);
+	}
+
+	public String getImageAlt(String fileName) {
+		return imageAltMap.get(correctExt(fileName));
 	}
 }
