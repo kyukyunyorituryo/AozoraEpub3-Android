@@ -2,6 +2,7 @@
 agp = "9.1.1"
 commonsCli = "1.11.0"
 commonsCompress = "1.28.0"
+commonsText = "1.15.0"
 json = "20251224"
 jsoup = "1.22.1"
 junit = "4.13.2"
@@ -22,6 +23,7 @@ velocityEngineCore = "2.4.1"
 [libraries]
 commons-cli = { module = "commons-cli:commons-cli", version.ref = "commonsCli" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commonsCompress" }
+commons-text = { module = "org.apache.commons:commons-text", version.ref = "commonsText" }
 json = { module = "org.json:json", version.ref = "json" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

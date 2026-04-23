@@ -53,6 +53,8 @@ dependencies {
     implementation libs.jsoup
 // https://mvnrepository.com/artifact/org.json/json
     implementation libs.json
+// Source: https://mvnrepository.com/artifact/org.apache.commons/commons-text
+    implementation libs.commons.text
 
     implementation libs.appcompat
     implementation libs.material
