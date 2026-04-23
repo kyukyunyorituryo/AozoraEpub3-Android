@@ -47,6 +47,8 @@ public class ImageUtils
 	//static ImageWriter pngImageWriter;
 	/** jpeg出力用 */
 	//static ImageWriter jpegImageWriter;
+	/** webp出力用 */
+	//static ImageWriter webpImageWriter;
 
 	/** 4bitグレースケール時のRGB階調カラーモデル取得 */
 	//static ColorModel getGray16ColorModel()
@@ -348,16 +350,26 @@ public class ImageUtils
 	/** 画像をZIPに保存 (マージン指定があればカット) */
 	static private void _writeImage(ZipArchiveOutputStream zos, Bitmap srcImage, String ext, float jpegQuality) throws IOException {
 		zos.putArchiveEntry(new org.apache.commons.compress.archivers.zip.ZipArchiveEntry("image." + ext));
-
+		int quality = (int) (jpegQuality * 100);
 		if ("png".equalsIgnoreCase(ext)) {
 			// PNG 出力 (最高画質で圧縮)
-			srcImage.compress(CompressFormat.PNG, 100, zos);
+			srcImage.compress(Bitmap.CompressFormat.PNG, 100, zos);
 		} else if ("jpeg".equalsIgnoreCase(ext) || "jpg".equalsIgnoreCase(ext)) {
 			// JPEG 出力 (指定された品質で圧縮)
-			srcImage.compress(CompressFormat.JPEG, (int) (jpegQuality * 100), zos);
+			srcImage.compress(Bitmap.CompressFormat.JPEG, quality, zos);
+		} else if ("webp".equalsIgnoreCase(ext)) {
+
+			if (android.os.Build.VERSION.SDK_INT >= 30) {
+				// 新API
+				srcImage.compress(Bitmap.CompressFormat.WEBP_LOSSY, quality, zos);
+			} else {
+				// 旧API（非推奨だが必要）
+				srcImage.compress(Bitmap.CompressFormat.WEBP, quality, zos);
+			}
+
 		} else {
 			// デフォルトは PNG
-			srcImage.compress(CompressFormat.PNG, 100, zos);
+			srcImage.compress(Bitmap.CompressFormat.PNG, 100, zos);
 		}
 
 		zos.closeArchiveEntry();

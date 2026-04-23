@@ -158,6 +158,8 @@ public class ImageInfoReader
 		if (this.hasImage(srcImageFileName)) return srcImageFileName;
 		srcImageFileName = srcImageFileName.replaceFirst("\\.\\w+$", ".gif");
 		if (this.hasImage(srcImageFileName)) return srcImageFileName;
+		srcImageFileName = srcImageFileName.replaceFirst("\\.\\w+$", ".webp");
+		if (this.hasImage(srcImageFileName)) return srcImageFileName;
 		
 		srcImageFileName = srcImageFileName.replaceFirst("\\.\\w+$", ".PNG");
 		if (this.hasImage(srcImageFileName)) return srcImageFileName;
@@ -167,6 +169,8 @@ public class ImageInfoReader
 		if (this.hasImage(srcImageFileName)) return srcImageFileName;
 		srcImageFileName = srcImageFileName.replaceFirst("\\.\\w+$", ".GIF");
 		if (this.hasImage(srcImageFileName)) return srcImageFileName;
+		srcImageFileName = srcImageFileName.replaceFirst("\\.\\w+$", ".WEBP");
+		if (this.hasImage(srcImageFileName)) return srcImageFileName;
 		
 		srcImageFileName = srcImageFileName.replaceFirst("\\.\\w+$", ".Png");
 		if (this.hasImage(srcImageFileName)) return srcImageFileName;
@@ -175,6 +179,8 @@ public class ImageInfoReader
 		srcImageFileName = srcImageFileName.replaceFirst("\\.\\w+$", ".Jpeg");
 		if (this.hasImage(srcImageFileName)) return srcImageFileName;
 		srcImageFileName = srcImageFileName.replaceFirst("\\.\\w+$", ".Gif");
+		if (this.hasImage(srcImageFileName)) return srcImageFileName;
+		srcImageFileName = srcImageFileName.replaceFirst("\\.\\w+$", ".Webp");
 		if (this.hasImage(srcImageFileName)) return srcImageFileName;
 		
 		return null;
@@ -232,7 +238,7 @@ public class ImageInfoReader
                 if (idx++ % 10 == 0) LogAppender.append(".");
                 String entryName = entry.getName();
                 String lowerName = entryName.toLowerCase();
-                if (lowerName.endsWith(".png") || lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg") || lowerName.endsWith(".gif")) {
+				if (lowerName.endsWith(".png") || lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg") || lowerName.endsWith(".gif")|| lowerName.endsWith(".webp")) {
                     ImageInfo imageInfo = null;
                     try {
                         imageInfo = ImageInfo.getImageInfo(zis);
@@ -261,7 +267,7 @@ public class ImageInfoReader
                     String entryName = fileHeader.getFileName();
                     entryName = entryName.replace('\\', '/');
                     String lowerName = entryName.toLowerCase();
-                    if (lowerName.endsWith(".png") || lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg") || lowerName.endsWith(".gif")) {
+					if (lowerName.endsWith(".png") || lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg") || lowerName.endsWith(".gif")|| lowerName.endsWith(".webp")) {
                         ImageInfo imageInfo;
                         InputStream is = null;
                         try {
