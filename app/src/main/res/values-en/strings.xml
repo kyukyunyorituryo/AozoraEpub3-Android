@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">AozoraEpub3</string>
+    <string name="banner_text">kindle sale https://kyukyunyorituryo.github.io/kindle_sale/</string>
+    <string name="open_settings_button_text">⚙️ Open Settings</string>
+    <string name="load_illustrations">📂 Load Illustrations</string>
+    <string name="load_body">📄 Load Body Text</string>
+    <string name="load_cover">🖼 Load Cover Image</string>
+    <string name="cancel">❌ Cancel</string>
+    <string name="start_conversion">✅ Start Conversion</string>
+    <string name="log_placeholder">Logs will appear here.\n</string>
+</resources>

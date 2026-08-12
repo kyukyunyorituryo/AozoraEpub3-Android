@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#303F9F"
+        android:title="@string/app_name"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:titleCentered="true"
+        app:titleTextColor="@android:color/white" />
+
+    <TextView
+        android:id="@+id/banner_ad_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#FFF8E1"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="@string/banner_text"
+        android:textColor="#4E342E"
+        android:textSize="14sp"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- ボタン群を横に並べる -->
+    <LinearLayout
+        android:id="@+id/buttons_row"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/banner_ad_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/openSettingsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/open_settings_button_text" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/figureButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/load_illustrations" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_load_body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/load_body" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/coverButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/load_cover" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/log_scrollview"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="#EEEEEE"
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/buttons_row"
+        app:layout_constraintBottom_toTopOf="@id/action_buttons_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/text_log"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/log_placeholder"
+            android:textColor="#000000"
+            android:textIsSelectable="true"
+            android:textSize="14sp"
+            android:typeface="monospace" />
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/action_buttons_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_cancel"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/cancel" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_convert"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/start_conversion" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
