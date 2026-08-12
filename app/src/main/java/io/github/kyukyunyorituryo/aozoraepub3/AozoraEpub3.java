@@ -584,8 +584,7 @@ public class AozoraEpub3
 				FileHeader fileHeader = archive.nextFileHeader();
 				while (fileHeader != null) {
 					if (!fileHeader.isDirectory()) {
-						String entryName = fileHeader.getFileNameW();
-						if (entryName.length() == 0) entryName = fileHeader.getFileNameString();
+						String entryName = fileHeader.getFileName();
 						entryName = entryName.replace('\\', '/');
 						if (entryName.substring(entryName.lastIndexOf('.')+1).equalsIgnoreCase("txt") && txtIdx-- == 0) {
 							if (imageInfoReader != null) imageInfoReader.setArchiveTextEntry(entryName);
