@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
     boolean convertCanceled = false;
     /** 変換実行中 */
     boolean running = false;
-    private final String RSS_URL = "https://kyukyunyorituryo.github.io/kindle_sale/rss.xml";
+    private final String RSS_URL = "https://densho-sale.pages.dev/rss.xml";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
