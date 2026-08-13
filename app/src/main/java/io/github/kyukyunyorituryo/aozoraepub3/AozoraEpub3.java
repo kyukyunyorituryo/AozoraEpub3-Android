@@ -38,7 +38,7 @@ import com.github.junrar.rarfile.FileHeader;
 /** コマンドライン実行用mainとePub3変換関数 */
 public class AozoraEpub3
 {
-	public static final String VERSION = "1.1.1b32Q";
+	public static final String VERSION = "1.1.1b33Q";
 
 	/** コマンドライン実行用 */
 	public static void mainthread(Context context, File srcFile)  {
